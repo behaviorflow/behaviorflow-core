@@ -16,14 +16,15 @@ namespace behaviorflow {
 class NodeFactory {
  public:
   using NodeConstructor =
-      std::function<std::unique_ptr<BehaviorFlowNode>(std::string, std::string)>;
+      std::function<std::unique_ptr<BehaviorFlowNodeBase>(std::string, std::string)>;
 
   NodeFactory() = default;
 
   template <typename T, typename... Args>
   void registerNodeType(std::string node_type_name, Args &&...node_constructor_args) {
-    static_assert(std::is_base_of<BehaviorFlowNode, T>::value,
+    static_assert(std::is_base_of<BehaviorFlowNodeBase, T>::value,
                   "Registered node type classes must derive from BehaviorFlowNode");
+                  // todo: use c++20 concepts
     if (node_type_constr_map_.find(node_type_name) != node_type_constr_map_.end()) {
       throw std::runtime_error("A node type with name '" + node_type_name +
                                "' is already registered.");
@@ -36,7 +37,7 @@ class NodeFactory {
     };
   }
 
-  std::unique_ptr<BehaviorFlowNode> createNodeInstance(std::string node_instance_nae,
+  std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(std::string node_instance_nae,
                                                        std::string node_type_name);
 
  private:

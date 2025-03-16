@@ -2,7 +2,7 @@
 
 namespace behaviorflow {
 
-std::unique_ptr<BehaviorFlowNode> NodeFactory::createNodeInstance(std::string node_instance_name,
+std::unique_ptr<BehaviorFlowNodeBase> NodeFactory::createNodeInstance(std::string node_instance_name,
                                                                   std::string node_type_name) {
   auto it = node_type_constr_map_.find(node_type_name);
   if (it != node_type_constr_map_.end()) {
