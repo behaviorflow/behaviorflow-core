@@ -3,15 +3,15 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_GRAPH_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_GRAPH_H_
 
-#include <string>
-#include <unordered_map>
 #include <map>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 
 namespace behaviorflow {
 
 class NodeGraph {
-public:
+ public:
   using NodeId = std::string;
   using NodeTypeId = std::string;
   using ResultId = std::string;
@@ -29,9 +29,10 @@ public:
   NodeDescription getNextNode(const NodeId& from_node_id, const ResultId& result_id) const;
   bool allTransitionedToNodesExist();
 
-private:
+ private:
   void validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const;
-  void validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id, const std::string& exception_msg) const;
+  void validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id,
+                                const std::string& exception_msg) const;
 
   NodeId start_node_id_;
   std::unordered_map<NodeId, NodeDescription> nodes_;

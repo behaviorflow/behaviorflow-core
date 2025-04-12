@@ -1,6 +1,7 @@
 // Copyright (c) 2024, Mitch Adams
 
 #include <gtest/gtest.h>
+
 #include "node_graph.h"
 
 using namespace behaviorflow;
@@ -22,27 +23,24 @@ class NodeGraphTest : public ::testing::Test {
   const NodeGraph::ResultId FailureResultId = "Failure";
   const NodeGraph::ResultId TrueResultId = "True";
   const NodeGraph::ResultId FalseResultId = "False";
-  const NodeGraph::NodeDescription StartNode = {
-    StartNodeId, TestConditionNodeType, 
-    {
-      {TrueResultId, NextNodeId1}, 
-      {FalseResultId, FailEndNodeId},
-    }
-  };
-  const NodeGraph::NodeDescription NextNode1 = {
-    NextNodeId1, TestTaskNodeType, 
-    {
-      {SuccessResultId, NextNodeId2}, 
-      {FailureResultId, FailEndNodeId},
-    }
-  };
-  const NodeGraph::NodeDescription NextNode2 = {
-    NextNodeId2, TestTaskNodeType, 
-    {
-      {SuccessResultId, SuccessEndNodeId}, 
-      {FailureResultId, FailEndNodeId},
-    }
-  };
+  const NodeGraph::NodeDescription StartNode = {StartNodeId,
+                                                TestConditionNodeType,
+                                                {
+                                                    {TrueResultId, NextNodeId1},
+                                                    {FalseResultId, FailEndNodeId},
+                                                }};
+  const NodeGraph::NodeDescription NextNode1 = {NextNodeId1,
+                                                TestTaskNodeType,
+                                                {
+                                                    {SuccessResultId, NextNodeId2},
+                                                    {FailureResultId, FailEndNodeId},
+                                                }};
+  const NodeGraph::NodeDescription NextNode2 = {NextNodeId2,
+                                                TestTaskNodeType,
+                                                {
+                                                    {SuccessResultId, SuccessEndNodeId},
+                                                    {FailureResultId, FailEndNodeId},
+                                                }};
   const NodeGraph::NodeDescription FailEndNode = {FailEndNodeId, TerminalNodeType, {}};
   const NodeGraph::NodeDescription SuccessEndNode = {SuccessEndNodeId, TerminalNodeType, {}};
 };
@@ -68,7 +66,8 @@ TEST_F(NodeGraphTest, MultipleTransitions) {
   EXPECT_EQ(bf_graph.getNextNode(StartNode.node_id, FalseResultId).node_id, FailEndNode.node_id);
   EXPECT_EQ(bf_graph.getNextNode(NextNode1.node_id, SuccessResultId).node_id, NextNode2.node_id);
   EXPECT_EQ(bf_graph.getNextNode(NextNode1.node_id, FailureResultId).node_id, FailEndNode.node_id);
-  EXPECT_EQ(bf_graph.getNextNode(NextNode2.node_id, SuccessResultId).node_id, SuccessEndNode.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(NextNode2.node_id, SuccessResultId).node_id,
+            SuccessEndNode.node_id);
   EXPECT_EQ(bf_graph.getNextNode(NextNode2.node_id, FailureResultId).node_id, FailEndNode.node_id);
 }
 
