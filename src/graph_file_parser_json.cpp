@@ -2,8 +2,8 @@
 
 namespace behaviorflow {
 
-std::unique_ptr<BehaviorFlowGraph> GraphFileParserJson::parseGraphString(std::string graph) {
-  return std::make_unique<BehaviorFlowGraph>();
+std::unique_ptr<NodeGraph> GraphFileParserJson::parseGraphString(std::string graph) {
+  return std::make_unique<NodeGraph>();
 }
 
 }  // namespace behaviorflow

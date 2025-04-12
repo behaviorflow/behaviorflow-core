@@ -6,7 +6,7 @@
 namespace behaviorflow {
 
 class BehaviorFlowEngine {
- public:
+public:
   BehaviorFlowEngine() = default;
   // registerConditionNode();
   // registerActionNode();

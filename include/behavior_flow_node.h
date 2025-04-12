@@ -9,28 +9,53 @@
 
 namespace behaviorflow {
 
+// class ReturnType {
+// public:
+//   using ResultId = std::string;
+//   ReturnType(ResultId result_id, std::string description)
+//       : result_id_(result_id), description_(description) {}
+//   ResultId getResultId() const { return result_id_; }
+//   std::string getDescription() const { return description_; }
+// private:
+//   ResultId result_id_;
+//   std::string description_;
+// }
+
 class BehaviorFlowNodeBase {
 public:
   BehaviorFlowNodeBase() = default;
   virtual ~BehaviorFlowNodeBase() = default;
-
+  
+  // No need to init... static and map
   void init(std::string node_instance_name);
+  // ReturnType run();
   std::string run();
+
+  // virtual NodeTypeAttributes getNodeTypeAttributes() = 0;
+
+  std::string getInstanceName() const { return node_instance_name_; }
+  virtual std::string getTypeName() const = 0; //todo: make static, use concepts
 
 private:
   virtual void onInit() = 0;
-  virtual std::string runNode() = 0; 
-  virtual std::vector<std::string> getValidResultNames() = 0;
+  // virtual ResultId runNode() = 0; 
+  virtual std::string runNode() = 0;
+  virtual std::vector<std::string> getValidResultIds() = 0;
 
   bool initialized_ = false;
   std::string node_instance_name_;
   // std::string node_description_;
 };
 
+// <ResultT>
+// class BehaviorFlowNode : public BehaviorFlowNodeBase {
+
+// }
+
 class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
 private:
   std::string runNode() override;
-  std::vector<std::string> getValidResultNames() override;
+  std::vector<std::string> getValidResultIds() override;
   virtual void execute() = 0;
 };
 
@@ -51,7 +76,7 @@ private:
 class ConditionNode : public BehaviorFlowNode<bool> {
 private:
   std::string resultTypeToString(bool return_type) override;
-  std::vector<std::string> getValidResultNames() override;
+  std::vector<std::string> getValidResultIds() override;
 };
 
 enum class TaskResult { Success, Failure };
@@ -61,7 +86,7 @@ std::string toString(TaskResult task_result);
 class TaskNode : public BehaviorFlowNode<TaskResult> {
 private:
   std::string resultTypeToString(TaskResult result_type) override;
-  std::vector<std::string> getValidResultNames() override;
+  std::vector<std::string> getValidResultIds() override;
 };
 
 // class TaskResult {

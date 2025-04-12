@@ -23,7 +23,7 @@ std::string SimpleBehaviorFlowNode::runNode() {
   return ""; 
 }
 
-std::vector<std::string> SimpleBehaviorFlowNode::getValidResultNames() {
+std::vector<std::string> SimpleBehaviorFlowNode::getValidResultIds() {
   return {""};
 }
 
@@ -31,7 +31,7 @@ std::string ConditionNode::resultTypeToString(bool result_type) {
   return result_type ? "True" : "False";
 }
 
-std::vector<std::string> ConditionNode::getValidResultNames() {
+std::vector<std::string> ConditionNode::getValidResultIds() {
   return {resultTypeToString(true), resultTypeToString(false)};
 }
 
@@ -51,7 +51,7 @@ std::string TaskNode::resultTypeToString(TaskResult result_type) {
   return toString(result_type);
 }
 
-std::vector<std::string> TaskNode::getValidResultNames() { 
+std::vector<std::string> TaskNode::getValidResultIds() { 
   return {resultTypeToString(TaskResult::Success), resultTypeToString(TaskResult::Failure)};
 }
 

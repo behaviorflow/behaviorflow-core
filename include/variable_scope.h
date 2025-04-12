@@ -13,7 +13,7 @@
 namespace behaviorflow {
 
 class VariableScope {
- public:
+public:
   VariableScope() = default;
   VariableScope(std::map<std::string, std::any> local_vars,
                 std::shared_ptr<std::map<std::string, std::any>> global_vars);

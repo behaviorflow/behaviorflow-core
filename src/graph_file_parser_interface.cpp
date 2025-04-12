@@ -2,7 +2,7 @@
 
 namespace behaviorflow {
 
-std::unique_ptr<BehaviorFlowGraph> GraphFileParserInterface::parseGraphFile(
+std::unique_ptr<NodeGraph> GraphFileParserInterface::parseGraphFile(
     std::string graph_file_path) {
   std::string graph_string = getStringFromFile(graph_file_path);
   return parseGraphString(graph_string);

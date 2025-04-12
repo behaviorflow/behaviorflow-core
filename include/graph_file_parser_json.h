@@ -9,9 +9,9 @@
 
 namespace behaviorflow {
 class GraphFileParserJson : public GraphFileParserInterface {
- public:
+public:
   GraphFileParserJson() = default;
-  std::unique_ptr<BehaviorFlowGraph> parseGraphString(std::string graph) override;
+  std::unique_ptr<NodeGraph> parseGraphString(std::string graph) override;
 };
 }  // end namespace behaviorflow
 

@@ -7,12 +7,17 @@
 
 namespace behaviorflow {
 
-class TestNodeSimple : public BehaviorFlowNode {
+class TestNodeSimple : public SimpleBehaviorFlowNode {
  public:
   TestNodeSimple() = default;
+  std::string getTypeName() const override { return "TestNodeSimple"; }
+
+ private:
+  void onInit() override {};
+  void execute() override {};
 };
 
-class TestNodeWithConstructorParams : public BehaviorFlowNode {
+class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
  public:
   TestNodeWithConstructorParams() = delete;
   TestNodeWithConstructorParams(int param1, std::string param2)
@@ -22,36 +27,42 @@ class TestNodeWithConstructorParams : public BehaviorFlowNode {
 
   std::string getParam2() { return param2_; }
 
+  std::string getTypeName() const override { return "TestNodeWithConstructorParams"; }
+
  private:
   int param1_;
   std::string param2_;
+
+ private:
+  void onInit() override {};
+  void execute() override {};
 };
 
-class AddTwoIntsNode : public BehaviorFlowNode {
- public:
-  AddTwoIntsNode() = default;
+// class AddTwoIntsNode : public SimpleBehaviorFlowNode {
+// public:
+//   AddTwoIntsNode() = default;
 
-  std::string run() override {
-    int a = getInput("Addend 1");
-    int b = getInput("Addend 2");
-    int sum = a + b;
-    setOutput("Sum", sum);
-    return "Success";
-  }
+//   void run() override {
+//     int a = getInput("Addend 1");
+//     int b = getInput("Addend 2");
+//     int sum = a + b;
+//     setOutput("Sum", sum);
+//   }
 
-  static NodeTypeAttributes getNodeTypeAttributes() {
-    NodeTypeAttributes attributes;
-    attributes.node_type_name = "Add Two Integers";
-    attributes.node_type_description = "Adds two integers together";
-    attributes.parameters = {
-      InputParameter<int>("Addend 1", "First integer to add"),
-      InputParameter<int>("Addend 2", "Second integer to add"),
-      OutputParameter<int>("Sum", "Sum of the two addends")
-    };
-    return attributes;
-  }
-};
+// private:
 
+//   static NodeTypeAttributes getNodeTypeAttributes() {
+//     NodeTypeAttributes attributes;
+//     attributes.node_type_name = "Add Two Integers";
+//     attributes.node_type_description = "Adds two integers together";
+//     attributes.parameters = {
+//       InputParameter<int>("Addend 1", "First integer to add"),
+//       InputParameter<int>("Addend 2", "Second integer to add"),
+//       OutputParameter<int>("Sum", "Sum of the two addends")
+//     };
+//     return attributes;
+//   }
+// };
 
 }  // end namespace behaviorflow
 
