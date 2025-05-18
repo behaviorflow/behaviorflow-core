@@ -4,7 +4,7 @@
 
 #include "behavior_flow_engine.h"
 
-using namespace behaviorflow;
+using namespace bflow;
 
 class BehaviorFlowEngineTest : public ::testing::Test {
  protected:

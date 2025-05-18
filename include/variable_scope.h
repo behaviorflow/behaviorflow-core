@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace behaviorflow {
+namespace bflow {
 
 class VariableScope {
 public:
@@ -31,6 +31,6 @@ public:
   std::shared_ptr<std::map<std::string, std::any>> global_vars_;
 };
 
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__VARIABLE_SCOPE_H_

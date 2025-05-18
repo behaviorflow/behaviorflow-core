@@ -5,38 +5,38 @@
 
 #include "behavior_flow_node.h"
 
-namespace behaviorflow {
+namespace bflow {
 
-class TestNodeSimple : public SimpleBehaviorFlowNode {
- public:
-  TestNodeSimple() = default;
-  std::string getTypeName() const override { return "TestNodeSimple"; }
+// class TestNodeSimple : public SimpleBehaviorFlowNode {
+//  public:
+//   TestNodeSimple() = default;
+//   std::string getTypeName() const override { return "TestNodeSimple"; }
 
- private:
-  void onInit() override {};
-  void execute() override {};
-};
+//  private:
+//   void onInit() override {};
+//   void execute() override {};
+// };
 
-class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
- public:
-  TestNodeWithConstructorParams() = delete;
-  TestNodeWithConstructorParams(int param1, std::string param2)
-      : param1_(param1), param2_(param2) {}
+// class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
+//  public:
+//   TestNodeWithConstructorParams() = delete;
+//   TestNodeWithConstructorParams(int param1, std::string param2)
+//       : param1_(param1), param2_(param2) {}
 
-  int getParam1() { return param1_; }
+//   int getParam1() { return param1_; }
 
-  std::string getParam2() { return param2_; }
+//   std::string getParam2() { return param2_; }
 
-  std::string getTypeName() const override { return "TestNodeWithConstructorParams"; }
+//   std::string getTypeName() const override { return "TestNodeWithConstructorParams"; }
 
- private:
-  int param1_;
-  std::string param2_;
+//  private:
+//   int param1_;
+//   std::string param2_;
 
- private:
-  void onInit() override {};
-  void execute() override {};
-};
+//  private:
+//   void onInit() override {};
+//   void execute() override {};
+// };
 
 // class AddTwoIntsNode : public SimpleBehaviorFlowNode {
 // public:
@@ -53,7 +53,7 @@ class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
 
 //   static NodeTypeAttributes getNodeTypeAttributes() {
 //     NodeTypeAttributes attributes;
-//     attributes.node_type_name = "Add Two Integers";
+//     attributes.node_type_id = "Add Two Integers";
 //     attributes.node_type_description = "Adds two integers together";
 //     attributes.parameters = {
 //       InputParameter<int>("Addend 1", "First integer to add"),
@@ -64,6 +64,6 @@ class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
 //   }
 // };
 
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_NODE_H_

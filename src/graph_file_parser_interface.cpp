@@ -1,6 +1,6 @@
 #include "graph_file_parser_interface.h"
 
-namespace behaviorflow {
+namespace bflow {
 
 std::unique_ptr<NodeGraph> GraphFileParserInterface::parseGraphFile(
     std::string graph_file_path) {
@@ -18,4 +18,4 @@ std::string GraphFileParserInterface::getStringFromFile(std::string graph_file_p
   return graph_string;
 }
 
-}  // namespace behaviorflow
+}  // namespace bflow

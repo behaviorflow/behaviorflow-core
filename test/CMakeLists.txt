@@ -1,5 +1,6 @@
 set(TEST_SOURCES
     test_node_graph.cpp
+    test_node_registrar.cpp
     # test_graph_file_parser_json.cpp
     # test_behavior_flow_engine.cpp
     # test_node_factory.cpp

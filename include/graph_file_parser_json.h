@@ -7,12 +7,12 @@
 
 #include "graph_file_parser_interface.h"
 
-namespace behaviorflow {
+namespace bflow {
 class GraphFileParserJson : public GraphFileParserInterface {
 public:
   GraphFileParserJson() = default;
   std::unique_ptr<NodeGraph> parseGraphString(std::string graph) override;
 };
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__GRAPH_FILE_PARSER_H_

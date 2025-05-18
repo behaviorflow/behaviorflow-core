@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <functional>
 
-namespace behaviorflow {
+namespace bflow {
 
 // class ReturnType {
 // public:
@@ -25,25 +26,28 @@ class BehaviorFlowNodeBase {
 public:
   BehaviorFlowNodeBase() = default;
   virtual ~BehaviorFlowNodeBase() = default;
+
+  using ResultId = std::string;
+  
   
   // No need to init... static and map
-  void init(std::string node_instance_name);
+  // void init(const std::string& node_instance_name, );
   // ReturnType run();
-  std::string run();
+  virtual ResultId execute() = 0;
 
   // virtual NodeTypeAttributes getNodeTypeAttributes() = 0;
 
-  std::string getInstanceName() const { return node_instance_name_; }
-  virtual std::string getTypeName() const = 0; //todo: make static, use concepts
+  // std::string getInstanceName() const { return node_instance_name_; }
+  // virtual std::string getTypeName() const = 0; //todo: make static, use concepts
 
-private:
-  virtual void onInit() = 0;
-  // virtual ResultId runNode() = 0; 
-  virtual std::string runNode() = 0;
-  virtual std::vector<std::string> getValidResultIds() = 0;
+// private:
+//   virtual void onInit() = 0;
+//   // virtual ResultId runNode() = 0; 
+//   virtual std::string runNode() = 0;
+//   virtual std::vector<std::string> getValidResultIds() = 0;
 
-  bool initialized_ = false;
-  std::string node_instance_name_;
+//   bool initialized_ = false;
+//   std::string node_instance_name_;
   // std::string node_description_;
 };
 
@@ -53,41 +57,57 @@ private:
 // }
 
 class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
-private:
-  std::string runNode() override;
-  std::vector<std::string> getValidResultIds() override;
-  virtual void execute() = 0;
-};
+public:
+  SimpleBehaviorFlowNode() = delete; // If they do this one, they better be able to inherit from executeImpl();
+  SimpleBehaviorFlowNode(std::function<void()> execution_function) : execution_function_(execution_function){}
 
-// REVIEW: is this class template really necessary?
-// Or does it just add unneccesary complexity?
-// Consider removing this layer
-template <typename ResultT>
-class BehaviorFlowNode : public BehaviorFlowNodeBase {
-private:
-  std::string runNode() override {
-    ResultT result = execute();
-    return resultTypeToString(result);
+  virtual ResultId execute() override {
+    if (!execution_function_) {
+      throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
+    }
+    execution_function_();
+    return "";
   }
-  virtual ResultT execute() = 0;
-  virtual std::string resultTypeToString(ResultT result_type) = 0;
-};
 
-class ConditionNode : public BehaviorFlowNode<bool> {
 private:
-  std::string resultTypeToString(bool return_type) override;
-  std::vector<std::string> getValidResultIds() override;
+  std::function<void()> execution_function_;
 };
 
-enum class TaskResult { Success, Failure };
 
-std::string toString(TaskResult task_result);
 
-class TaskNode : public BehaviorFlowNode<TaskResult> {
-private:
-  std::string resultTypeToString(TaskResult result_type) override;
-  std::vector<std::string> getValidResultIds() override;
-};
+// // REVIEW: is this class template really necessary?
+// // Or does it just add unneccesary complexity?
+// // Consider removing this layer
+// template <typename ResultT>
+// class BehaviorFlowNode : public BehaviorFlowNodeBase {
+// private:
+//   std::string runNode() override {
+//     ResultT result = execute();
+//     return resultTypeToString(result);
+//   }
+//   virtual ResultT execute() = 0;
+//   virtual std::string resultTypeToString(ResultT result_type) = 0;
+// };
+
+// class ConditionNode : public BehaviorFlowNode<bool> {
+// private:
+//   std::string resultTypeToString(bool return_type) override;
+//   std::vector<std::string> getValidResultIds() override;
+// };
+
+// enum class TaskResult { Success, Failure };
+
+// std::string toString(TaskResult task_result);
+
+// class TaskNode : public BehaviorFlowNode<TaskResult> {
+// private:
+//   std::string resultTypeToString(TaskResult result_type) override;
+//   std::vector<std::string> getValidResultIds() override;
+// };
+
+
+
+
 
 // class TaskResult {
 //  public:
@@ -112,6 +132,6 @@ private:
 //   std::string error_message_;
 // };
 
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_NODE_H_

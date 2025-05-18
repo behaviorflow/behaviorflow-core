@@ -1,63 +1,63 @@
 #include "behavior_flow_node.h"
 
-namespace behaviorflow {
+namespace bflow {
 
-void BehaviorFlowNodeBase::init(std::string node_instance_name) {
-  if (!initialized_) {
-    node_instance_name_ = node_instance_name;
-    onInit();
-    initialized_ = true;
-  }
-  // else?
-}
+// void BehaviorFlowNodeBase::init(std::string node_instance_name) {
+//   if (!initialized_) {
+//     node_instance_name_ = node_instance_name;
+//     onInit();
+//     initialized_ = true;
+//   }
+//   // else?
+// }
 
-std::string BehaviorFlowNodeBase::run() {
-  if (!initialized_) {
-    throw std::runtime_error("Node not initialized");
-  }
-  return runNode();
-}
+// std::string BehaviorFlowNodeBase::run() {
+//   if (!initialized_) {
+//     throw std::runtime_error("Node not initialized");
+//   }
+//   return runNode();
+// }
 
-std::string SimpleBehaviorFlowNode::runNode() { 
-  execute();
-  return ""; 
-}
+// std::string SimpleBehaviorFlowNode::runNode() { 
+//   execute();
+//   return ""; 
+// }
 
-std::vector<std::string> SimpleBehaviorFlowNode::getValidResultIds() {
-  return {""};
-}
+// std::vector<std::string> SimpleBehaviorFlowNode::getValidResultIds() {
+//   return {""};
+// }
 
-std::string ConditionNode::resultTypeToString(bool result_type) {
-  return result_type ? "True" : "False";
-}
+// std::string ConditionNode::resultTypeToString(bool result_type) {
+//   return result_type ? "True" : "False";
+// }
 
-std::vector<std::string> ConditionNode::getValidResultIds() {
-  return {resultTypeToString(true), resultTypeToString(false)};
-}
+// std::vector<std::string> ConditionNode::getValidResultIds() {
+//   return {resultTypeToString(true), resultTypeToString(false)};
+// }
 
-std::string toString(TaskResult task_result) {
-  switch (task_result)
-  {
-  case TaskResult::Success:
-    return "Success";
-  case TaskResult::Failure:
-    return "Failure"; 
-  default:
-    return "Unknown";
-  }
-}
+// std::string toString(TaskResult task_result) {
+//   switch (task_result)
+//   {
+//   case TaskResult::Success:
+//     return "Success";
+//   case TaskResult::Failure:
+//     return "Failure"; 
+//   default:
+//     return "Unknown";
+//   }
+// }
 
-std::string TaskNode::resultTypeToString(TaskResult result_type) { 
-  return toString(result_type);
-}
+// std::string TaskNode::resultTypeToString(TaskResult result_type) { 
+//   return toString(result_type);
+// }
 
-std::vector<std::string> TaskNode::getValidResultIds() { 
-  return {resultTypeToString(TaskResult::Success), resultTypeToString(TaskResult::Failure)};
-}
+// std::vector<std::string> TaskNode::getValidResultIds() { 
+//   return {resultTypeToString(TaskResult::Success), resultTypeToString(TaskResult::Failure)};
+// }
 
 // static NodeTypeAttributes BehaviorFlowNodeBase::getNodeTypeAttributes() {
 //   NodeTypeAttributes attributes;
-//   attributes.node_type_name = "Node Name";
+//   attributes.node_type_id = "Node Name";
 //   attributes.node_type_description = "Description of the node type";
 //   attributes.parameters = {
 //     NodeParameter<std::string>("param1", ParameterType::InputParam, "Param 1 description", "default_value"),
@@ -67,4 +67,4 @@ std::vector<std::string> TaskNode::getValidResultIds() {
 // }
 
 
-}  // namespace behaviorflow
+}  // namespace bflow

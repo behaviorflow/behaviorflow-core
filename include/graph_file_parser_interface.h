@@ -10,7 +10,7 @@
 
 #include "node_graph.h"
 
-namespace behaviorflow {
+namespace bflow {
 /**
  * @brief Interface for parsing a file representing a NodeGraph and returning a
  * NodeGraph object.
@@ -34,6 +34,6 @@ public:
  private:
   std::string getStringFromFile(std::string graph_file_path);
 };
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__GRAPH_FILE_PARSER_INTERFACE_H_

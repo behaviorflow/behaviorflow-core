@@ -1,6 +1,6 @@
 #include "node_graph.h"
 
-namespace behaviorflow {
+namespace bflow {
 
 void NodeGraph::addStartNode(const NodeDescription& node_description) {
   if (start_node_id_ != "") {  // assuming existing start node id is not empty string
@@ -62,4 +62,4 @@ bool NodeGraph::allTransitionedToNodesExist() {
   return true;
 }
 
-}  // end namespace behaviorflow
+}  // end namespace bflow

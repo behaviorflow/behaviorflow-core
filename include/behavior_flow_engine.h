@@ -3,7 +3,7 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_
 
-namespace behaviorflow {
+namespace bflow {
 
 class BehaviorFlowEngine {
 public:
@@ -12,6 +12,6 @@ public:
   // registerActionNode();
 };
 
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_

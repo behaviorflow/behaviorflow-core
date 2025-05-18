@@ -4,7 +4,7 @@
 
 #include "graph_file_parser_json.h"
 
-using namespace behaviorflow;
+using namespace bflow;
 
 class GraphFileParserJsonTest : public ::testing::Test {
  protected:

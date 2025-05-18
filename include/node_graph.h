@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace behaviorflow {
+namespace bflow {
 
 class NodeGraph {
  public:
@@ -38,6 +38,6 @@ class NodeGraph {
   std::unordered_map<NodeId, NodeDescription> nodes_;
 };
 
-}  // end namespace behaviorflow
+}  // end namespace bflow
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_GRAPH_H_

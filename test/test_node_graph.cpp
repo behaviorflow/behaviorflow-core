@@ -4,7 +4,7 @@
 
 #include "node_graph.h"
 
-using namespace behaviorflow;
+using namespace bflow;
 
 class NodeGraphTest : public ::testing::Test {
  protected:

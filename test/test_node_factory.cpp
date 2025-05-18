@@ -8,12 +8,12 @@
 #include "node_factory.h"
 #include "nodes_for_testing.h"
 
-using namespace behaviorflow;
+using namespace bflow;
 
 class NodeFactoryTest : public ::testing::Test {
  protected:
   NodeFactory factory;
-  void SetUp() override { factory = NodeFactory(); }
+  void SetUp() override { factory = NodeFactory::getInstance(); }
 };
 
 TEST_F(NodeFactoryTest, RegisterNodeClass) {
