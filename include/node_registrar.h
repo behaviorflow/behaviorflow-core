@@ -12,7 +12,7 @@ namespace bflow
 template <typename ReturnT, typename ReturnTInterpreter>
 void registerNodeType(
 	const std::string& node_type_id,
-	const std::string& node_type_description,
+	// const std::string& node_type_description,
 	std::function<ReturnT()> execution_function)
 {
 
@@ -31,6 +31,24 @@ void registerSimpleNodeType(
 {
 	NodeFactory::getInstance().registerNodeType<SimpleBehaviorFlowNode>(node_type_id, execution_function);
 }
+
+// void registerSimpleNodeType(
+// 	const std::string& node_type_id,
+// 	void(*execution_function)())
+// {
+// 	NodeFactory::getInstance().registerNodeType<SimpleBehaviorFlowNode>(node_type_id, execution_function);
+// }
+
+// template<typename Callable>
+// void registerSimpleNodeType(
+// 	const std::string& node_type_id,
+// 	Callable&& execution_function)
+// {
+// 	NodeFactory::getInstance().registerNodeType<SimpleBehaviorFlowNode>(
+// 		node_type_id,
+// 		std::forward<Callable>(execution_function)
+// 	);
+// }
 
 
 } // namespace bflow

@@ -10,4 +10,8 @@ std::unique_ptr<BehaviorFlowNodeBase> NodeFactory::createNodeInstance(std::strin
   return nullptr;
 }
 
+void NodeFactory::clear() {
+  node_type_constr_map_.clear();
+}
+
 }  // namespace bflow

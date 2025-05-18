@@ -49,6 +49,7 @@ public:
   }
 
   std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(std::string node_type_id);
+  void clear();
 
 private:
   NodeFactory() = default;
