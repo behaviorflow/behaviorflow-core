@@ -23,47 +23,56 @@ class NodeRegistrarTest : public ::testing::Test {
 
  protected:
 	void SetUp() override {
-		NodeFactory::getInstance().clear();
 	}
 
 	bool flag = false;
+	NodeRegistrar registrar;
 };
 
-TEST_F(NodeRegistrarTest, registerSimpleNodeWithLambda) {
+TEST_F(NodeRegistrarTest, RegisterSimpleNodeWithLambda) {
 	const std::string NodeTypeId = "registerSimpleNode";
+	const std::string NodeInstanceId = "SimpleNode";
 	auto flag = std::make_shared<bool>(false);
-	registerSimpleNodeType(
+	registrar.registerSimpleNodeType(
 		NodeTypeId,
 		[flag](){*flag = true;}
 	);
-	std::unique_ptr<BehaviorFlowNodeBase> node = NodeFactory::getInstance().createNodeInstance(NodeTypeId);
-	node->execute();
+	NodeWithMetadata node = NodeRegistrarInstantiator::instantiateNode(registrar, NodeTypeId, NodeInstanceId);
+	node.node_instance->execute();
 	EXPECT_TRUE(*flag);
+	EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+	EXPECT_EQ(node.metadata.node_instance_id, NodeInstanceId);
 }
 
-TEST_F(NodeRegistrarTest, registerSimpleNodeWithBind) {
+TEST_F(NodeRegistrarTest, RegisterSimpleNodeWithBind) {
 	setFlagFalse();
 	const std::string NodeTypeId = "registerSimpleNodeWithBind";
-	registerSimpleNodeType(
+	const std::string NodeInstanceId = "SimpleNodeWithBind";
+	registrar.registerSimpleNodeType(
 		NodeTypeId,
 		std::bind(
 			&NodeRegistrarTest::setFlagTrue,
 			this
 		)
 	);
-	std::unique_ptr<BehaviorFlowNodeBase> node = NodeFactory::getInstance().createNodeInstance(NodeTypeId);
-	node->execute();
+	NodeWithMetadata node = NodeRegistrarInstantiator::instantiateNode(registrar, NodeTypeId, NodeInstanceId);
+	node.node_instance->execute();
 	EXPECT_TRUE(flag);
+	EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+	EXPECT_EQ(node.metadata.node_instance_id, NodeInstanceId);
 }
 
-TEST_F(NodeRegistrarTest, registerSimpleNodeWithFunctionPointer) {
+TEST_F(NodeRegistrarTest, RegisterSimpleNodeWithFunctionPointer) {
 	global_flag = false;
 	const std::string NodeTypeId = "registerSimpleNodeWithFunctionPointer";
-	registerSimpleNodeType(
+	const std::string NodeInstanceId = "SimpleNodeWithFunctionPointer";
+	registrar.registerSimpleNodeType(
 		NodeTypeId,
 		setGlobalFlagTrue
 	);
-	std::unique_ptr<BehaviorFlowNodeBase> node = NodeFactory::getInstance().createNodeInstance(NodeTypeId);
-	node->execute();
+	NodeWithMetadata node = NodeRegistrarInstantiator::instantiateNode(registrar, NodeTypeId, NodeInstanceId);
+	node.node_instance->execute();
 	EXPECT_TRUE(global_flag);
+	EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+	EXPECT_EQ(node.metadata.node_instance_id, NodeInstanceId);
 }

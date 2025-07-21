@@ -7,15 +7,12 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include "utils/behavior_flow_utils.h"
 
 namespace bflow {
 
 class NodeGraph {
  public:
-  using NodeId = std::string;
-  using NodeTypeId = std::string;
-  using ResultId = std::string;
-
   struct NodeDescription {
     NodeId node_id;
     NodeTypeId node_type;

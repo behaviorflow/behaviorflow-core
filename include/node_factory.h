@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "behavior_flow_node.h"
+#include "utils/behavior_flow_utils.h"
 
 namespace bflow {
 
@@ -18,19 +19,10 @@ public:
   using NodeConstructor =
       std::function<std::unique_ptr<BehaviorFlowNodeBase>(std::string)>;
 
-  static NodeFactory& getInstance() {
-    static NodeFactory instance;
-    return instance;
-  }
-
-  NodeFactory(const NodeFactory&) = delete;
-  NodeFactory& operator=(const NodeFactory&) = delete;
-  NodeFactory(NodeFactory&&) = delete;
-  NodeFactory& operator=(NodeFactory&&) = delete;
-  ~NodeFactory() = default;
+  NodeFactory() = default;
 
   template <typename T, typename... Args>
-  void registerNodeType(std::string node_type_id, Args &&...node_constructor_args) {
+  void registerNodeType(const NodeTypeId& node_type_id, Args &&...node_constructor_args) {
     static_assert(std::is_base_of<BehaviorFlowNodeBase, T>::value,
                   "Registered node type classes must derive from BehaviorFlowNodeBase");
                   // todo: use c++20 concepts, and pull ths logic out. Just pass in the name
@@ -49,10 +41,8 @@ public:
   }
 
   std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(std::string node_type_id);
-  void clear();
 
 private:
-  NodeFactory() = default;
   std::unordered_map<std::string, NodeConstructor> node_type_constr_map_;
 };
 

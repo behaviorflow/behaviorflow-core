@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "node_graph.h"
+#include "utils/behavior_flow_utils.h"
 
 using namespace bflow;
 
@@ -10,19 +11,18 @@ class NodeGraphTest : public ::testing::Test {
  protected:
   NodeGraph bf_graph;
   void SetUp() override { bf_graph = NodeGraph(); }
-
-  const NodeGraph::NodeId StartNodeId = "start";
-  const NodeGraph::NodeId NextNodeId1 = "next1";
-  const NodeGraph::NodeId NextNodeId2 = "next2";
-  const NodeGraph::NodeId FailEndNodeId = "fail_end";
-  const NodeGraph::NodeId SuccessEndNodeId = "success_end";
-  const NodeGraph::NodeTypeId TestTaskNodeType = "task";
-  const NodeGraph::NodeTypeId TestConditionNodeType = "condition";
-  const NodeGraph::NodeTypeId TerminalNodeType = "terminal";
-  const NodeGraph::ResultId SuccessResultId = "Success";
-  const NodeGraph::ResultId FailureResultId = "Failure";
-  const NodeGraph::ResultId TrueResultId = "True";
-  const NodeGraph::ResultId FalseResultId = "False";
+  NodeId StartNodeId = "start";
+  const NodeId NextNodeId1 = "next1";
+  const NodeId NextNodeId2 = "next2";
+  const NodeId FailEndNodeId = "fail_end";
+  const NodeId SuccessEndNodeId = "success_end";
+  const NodeTypeId TestTaskNodeType = "task";
+  const NodeTypeId TestConditionNodeType = "condition";
+  const NodeTypeId TerminalNodeType = "terminal";
+  const ResultId SuccessResultId = "Success";
+  const ResultId FailureResultId = "Failure";
+  const ResultId TrueResultId = "True";
+  const ResultId FalseResultId = "False";
   const NodeGraph::NodeDescription StartNode = {StartNodeId,
                                                 TestConditionNodeType,
                                                 {

@@ -11,6 +11,8 @@ add_library(${BF_LIBRARY}
     # src/behavior_flow_engine.cpp
     src/behavior_flow_node.cpp
     src/node_factory.cpp
+    src/node_registrar.cpp
+    src/node_instance_provider.cpp
 )
 target_include_directories(${BF_LIBRARY} PUBLIC include)
 

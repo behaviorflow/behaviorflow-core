@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <functional>
+#include "utils/behavior_flow_utils.h"
 
 namespace bflow {
 
@@ -26,9 +27,6 @@ class BehaviorFlowNodeBase {
 public:
   BehaviorFlowNodeBase() = default;
   virtual ~BehaviorFlowNodeBase() = default;
-
-  using ResultId = std::string;
-  
   
   // No need to init... static and map
   // void init(const std::string& node_instance_name, );
