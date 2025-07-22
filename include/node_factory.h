@@ -40,10 +40,10 @@ public:
     };
   }
 
-  std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(std::string node_type_id);
+  std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(NodeTypeId node_type_id);
 
 private:
-  std::unordered_map<std::string, NodeConstructor> node_type_constr_map_;
+  std::unordered_map<NodeTypeId, NodeConstructor> node_type_constr_map_;
 };
 
 }  // end namespace bflow

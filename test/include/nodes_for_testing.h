@@ -7,36 +7,26 @@
 
 namespace bflow {
 
-// class TestNodeSimple : public SimpleBehaviorFlowNode {
-//  public:
-//   TestNodeSimple() = default;
-//   std::string getTypeName() const override { return "TestNodeSimple"; }
 
-//  private:
-//   void onInit() override {};
-//   void execute() override {};
-// };
+class TestNodeBasic : public BehaviorFlowNodeBase {
+ public:
+  TestNodeBasic() = default;
+  ResultId execute() override {return "";};
+};
 
-// class TestNodeWithConstructorParams : public SimpleBehaviorFlowNode {
-//  public:
-//   TestNodeWithConstructorParams() = delete;
-//   TestNodeWithConstructorParams(int param1, std::string param2)
-//       : param1_(param1), param2_(param2) {}
+class TestNodeWithConstructorParams : public BehaviorFlowNodeBase {
+ public:
+  TestNodeWithConstructorParams() = delete;
+  TestNodeWithConstructorParams(int param1, std::string param2)
+      : param1_(param1), param2_(param2) {}
+  int getParam1() { return param1_; }
+  std::string getParam2() { return param2_; }
+  ResultId execute() override {return "";};
 
-//   int getParam1() { return param1_; }
-
-//   std::string getParam2() { return param2_; }
-
-//   std::string getTypeName() const override { return "TestNodeWithConstructorParams"; }
-
-//  private:
-//   int param1_;
-//   std::string param2_;
-
-//  private:
-//   void onInit() override {};
-//   void execute() override {};
-// };
+ private:
+  int param1_;
+  std::string param2_;
+};
 
 // class AddTwoIntsNode : public SimpleBehaviorFlowNode {
 // public:

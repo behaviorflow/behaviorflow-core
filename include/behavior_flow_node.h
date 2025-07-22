@@ -56,10 +56,10 @@ public:
 
 class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
 public:
-  SimpleBehaviorFlowNode() = delete; // If they do this one, they better be able to inherit from executeImpl();
+  SimpleBehaviorFlowNode() = delete;
   SimpleBehaviorFlowNode(std::function<void()> execution_function) : execution_function_(execution_function){}
 
-  virtual ResultId execute() override {
+  ResultId execute() override {
     if (!execution_function_) {
       throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
     }

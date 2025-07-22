@@ -2,10 +2,10 @@ set(TEST_SOURCES
     test_node_graph.cpp
     test_node_registrar.cpp
     test_node_instance_provider.cpp
+    test_node_factory.cpp
     # test_graph_file_parser_json.cpp
     # test_behavior_flow_engine.cpp
-    # test_node_factory.cpp
-    # src/nodes_for_testing.cpp
+    src/nodes_for_testing.cpp
 )
 
 include_directories(include)
