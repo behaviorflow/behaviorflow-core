@@ -2,8 +2,8 @@
 
 namespace bflow {
 
-std::unique_ptr<NodeGraph> GraphFileParserJson::parseGraphString(std::string graph) {
-  return std::make_unique<NodeGraph>();
+NodeGraph GraphFileParserJson::parseGraphString(const std::string& graph) {
+  return NodeGraph();
 }
 
 }  // namespace bflow

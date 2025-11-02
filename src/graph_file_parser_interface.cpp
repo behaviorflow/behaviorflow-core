@@ -2,16 +2,16 @@
 
 namespace bflow {
 
-std::unique_ptr<NodeGraph> GraphFileParserInterface::parseGraphFile(
-    std::string graph_file_path) {
+NodeGraph GraphFileParserInterface::parseGraphFile(
+    const std::filesystem::path& graph_file_path) {
   std::string graph_string = getStringFromFile(graph_file_path);
   return parseGraphString(graph_string);
 }
 
-std::string GraphFileParserInterface::getStringFromFile(std::string graph_file_path) {
-  std::ifstream file(graph_file_path);
+std::string GraphFileParserInterface::getStringFromFile(const std::filesystem::path& graph_file_path) {
+  std::ifstream file(graph_file_path, std::ios::binary);
   if (!file.is_open()) {
-    throw std::runtime_error("Could not open file: " + graph_file_path);
+    throw std::runtime_error("Could not open file: " + graph_file_path.string());
   }
   std::string graph_string((std::istreambuf_iterator<char>(file)),
                            std::istreambuf_iterator<char>());

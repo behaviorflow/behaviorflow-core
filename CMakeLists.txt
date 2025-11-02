@@ -6,13 +6,14 @@ set(BF_LIBRARY ${PROJECT_NAME})
 
 add_library(${BF_LIBRARY}
     src/node_graph.cpp
-    # src/graph_file_parser_interface.cpp
-    # src/graph_file_parser_json.cpp
-    # src/behavior_flow_engine.cpp
+    src/graph_file_parser_interface.cpp
+    src/graph_file_parser_json.cpp
+    src/behavior_flow_engine.cpp
     src/behavior_flow_node.cpp
     src/node_factory.cpp
-    src/node_registrar.cpp
+    src/node_registry.cpp
     src/node_instance_provider.cpp
+    src/standard_node_library.cpp
 )
 target_include_directories(${BF_LIBRARY} PUBLIC include)
 

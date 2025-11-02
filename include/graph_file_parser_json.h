@@ -9,9 +9,10 @@
 
 namespace bflow {
 class GraphFileParserJson : public GraphFileParserInterface {
-public:
+ public:
   GraphFileParserJson() = default;
-  std::unique_ptr<NodeGraph> parseGraphString(std::string graph) override;
+  ~GraphFileParserJson() override = default;
+  NodeGraph parseGraphString(const std::string& graph) override;
 };
 }  // end namespace bflow
 

@@ -1,4 +1,13 @@
+// Copyright (c) 2025, Mitch Adams
+
 #include "node_graph.h"
+
+#include <algorithm>
+#include <iostream>
+#include <ranges>
+#include <sstream>
+#include <stack>
+#include <unordered_set>
 
 namespace bflow {
 
@@ -14,7 +23,20 @@ void NodeGraph::addStartNode(const NodeDescription& node_description) {
 void NodeGraph::addNode(const NodeDescription& node_description) {
   if (nodes_.find(node_description.node_id) != nodes_.end()) {
     throw std::runtime_error("Cannot add node '" + node_description.node_id +
-                             "' as it already exists in the graph.");
+                             "' as a node with that id already exists in the graph.");
+  }
+  if (isTerminalNodeType(node_description.node_type)) {
+    if (!node_description.transitions.empty()) {
+      throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
+                               node_description.node_type +
+                               "' as terminal nodes cannot have any transitions.");
+    }
+  } else {
+    if (node_description.transitions.empty()) {
+      throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
+                               node_description.node_type +
+                               "' as non-terminal nodes must have at least one transition.");
+    }
   }
   nodes_.insert({node_description.node_id, node_description});
 }
@@ -36,8 +58,16 @@ NodeGraph::NodeDescription NodeGraph::getNextNode(const NodeId& from_node_id,
   return nodes_.at(next_node_id);
 }
 
+void NodeGraph::validateThatGraphIsComplete() const {
+  if (start_node_id_ == "") {
+    throw std::runtime_error("Graph validation failed: No start node defined.");
+  }
+  validateAllTransitionedToNodesExist();
+  validateAllNodesAreReachableFromStart();
+}
+
 void NodeGraph::validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const {
-  if (nodes_.find(node_id) == nodes_.end()) {
+  if (!nodes_.contains(node_id)) {
     throw std::runtime_error(exception_msg);
   }
 }
@@ -45,21 +75,63 @@ void NodeGraph::validateNodeExists(const NodeId& node_id, const std::string& exc
 void NodeGraph::validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id,
                                          const std::string& exception_msg) const {
   validateNodeExists(from_node_id, exception_msg);
-  NodeDescription from_node = nodes_.at(from_node_id);
-  if (from_node.transitions.find(result_id) == from_node.transitions.end()) {
+  const auto& from_node = nodes_.at(from_node_id);
+  if (!from_node.transitions.contains(result_id)) {
     throw std::runtime_error(exception_msg);
   }
 }
 
-bool NodeGraph::allTransitionedToNodesExist() {
-  for (const auto& node : nodes_) {
-    for (const auto& transition : node.second.transitions) {
-      if (nodes_.find(transition.second) == nodes_.end()) {
-        return false;
+void NodeGraph::validateAllTransitionedToNodesExist() const {
+  std::ostringstream error_msg_stream;
+  bool found_invalid = false;
+  for (const auto& [node_id, node_desc] : nodes_) {
+    auto nonexistant_transition_range =
+        node_desc.transitions | std::views::values |
+        std::views::filter([this](const NodeId& target) { return !nodes_.contains(target); });
+    if (!std::ranges::empty(nonexistant_transition_range)) {
+      if (!found_invalid) {
+        error_msg_stream << "Graph validation failed. The following nodes transition to nodes that "
+                            "are not defined within the node graph:\n";
+        found_invalid = true;
       }
+      error_msg_stream << "  * Node \"" << node_id << "\" connects to nonexistant node(s): ";
+      bool first = true;
+      for (const auto& target : nonexistant_transition_range) {
+        if (!first) error_msg_stream << ", ";
+        error_msg_stream << "\"" << target << "\"";
+        first = false;
+      }
+      error_msg_stream << "\n";
     }
   }
-  return true;
+  if (found_invalid) {
+    throw std::runtime_error(error_msg_stream.str());
+  }
+}
+
+void NodeGraph::validateAllNodesAreReachableFromStart() const {
+  std::unordered_set<NodeId> visited;
+  std::stack<NodeId> to_visit;
+  to_visit.push(start_node_id_);
+  while (!to_visit.empty()) {
+    NodeId current = to_visit.top();
+    to_visit.pop();
+    if (!visited.insert(current).second) continue;
+    for (const auto& [_, next] : nodes_.at(current).transitions) {
+      to_visit.push(next);
+    }
+  }
+  auto unreachable = nodes_ | std::views::keys | std::views::filter([&visited](const NodeId& id) {
+                       return !visited.contains(id);
+                     });
+  if (!std::ranges::empty(unreachable)) {
+    std::ostringstream error_msg_stream;
+    error_msg_stream << "Graph validation failed: Unreachable node(s): ";
+    for (const auto& id : unreachable) error_msg_stream << "'" << id << "', ";
+    std::string error_msg = error_msg_stream.str();
+    error_msg = error_msg.substr(0, error_msg.size() - 2);
+    throw std::runtime_error(error_msg);
+  }
 }
 
 }  // end namespace bflow

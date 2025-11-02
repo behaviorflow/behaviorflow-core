@@ -1,3 +1,5 @@
+// Copyright (c) 2025, Mitch Adams
+
 #include "node_factory.h"
 
 namespace bflow {

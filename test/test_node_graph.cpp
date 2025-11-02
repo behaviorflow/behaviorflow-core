@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "node_graph.h"
+#include "utils/behavior_flow_types.h"
 #include "utils/behavior_flow_utils.h"
 
 using namespace bflow;
@@ -10,7 +11,6 @@ using namespace bflow;
 class NodeGraphTest : public ::testing::Test {
  protected:
   NodeGraph bf_graph;
-  void SetUp() override { bf_graph = NodeGraph(); }
   NodeId StartNodeId = "start";
   const NodeId NextNodeId1 = "next1";
   const NodeId NextNodeId2 = "next2";
@@ -18,7 +18,6 @@ class NodeGraphTest : public ::testing::Test {
   const NodeId SuccessEndNodeId = "success_end";
   const NodeTypeId TestTaskNodeType = "task";
   const NodeTypeId TestConditionNodeType = "condition";
-  const NodeTypeId TerminalNodeType = "terminal";
   const ResultId SuccessResultId = "Success";
   const ResultId FailureResultId = "Failure";
   const ResultId TrueResultId = "True";
@@ -41,22 +40,25 @@ class NodeGraphTest : public ::testing::Test {
                                                     {SuccessResultId, SuccessEndNodeId},
                                                     {FailureResultId, FailEndNodeId},
                                                 }};
-  const NodeGraph::NodeDescription FailEndNode = {FailEndNodeId, TerminalNodeType, {}};
-  const NodeGraph::NodeDescription SuccessEndNode = {SuccessEndNodeId, TerminalNodeType, {}};
+  const NodeGraph::NodeDescription FailEndNode = {FailEndNodeId, FailureNodeTypeId, {}};
+  const NodeGraph::NodeDescription SuccessEndNode = {SuccessEndNodeId, SuccessNodeTypeId, {}};
 };
 
 TEST_F(NodeGraphTest, StartNode) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   EXPECT_EQ(bf_graph.getStartNode().node_id, StartNode.node_id);
 }
 
 TEST_F(NodeGraphTest, SingleTransition) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   EXPECT_EQ(bf_graph.getNextNode(StartNode.node_id, TrueResultId).node_id, NextNode1.node_id);
 }
 
 TEST_F(NodeGraphTest, MultipleTransitions) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   bf_graph.addNode(NextNode2);
@@ -72,40 +74,147 @@ TEST_F(NodeGraphTest, MultipleTransitions) {
 }
 
 TEST_F(NodeGraphTest, GetFromNonExistentNode) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   EXPECT_ANY_THROW(bf_graph.getNextNode("nonexistent", SuccessResultId));
 }
 
 TEST_F(NodeGraphTest, NonExistentTransition) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   EXPECT_ANY_THROW(bf_graph.getNextNode(StartNode.node_id, "nonexistent"));
 }
 
 TEST_F(NodeGraphTest, DestinationNodeNotRegistered) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   EXPECT_ANY_THROW(bf_graph.getNextNode(StartNode.node_id, TrueResultId));
 }
 
-TEST_F(NodeGraphTest, DuplicateNodeId) {
+TEST_F(NodeGraphTest, AddDuplicateNodeId) {
+  bf_graph = NodeGraph();
+  bf_graph.addNode(NextNode1);
+  EXPECT_ANY_THROW(bf_graph.addNode(NextNode1));
+}
+
+TEST_F(NodeGraphTest, AddDuplicateNodeIdAsStartNode) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   EXPECT_ANY_THROW(bf_graph.addNode(StartNode));
 }
 
-TEST_F(NodeGraphTest, CheckAllTransitionsExist) {
+TEST_F(NodeGraphTest, AddTwoStartNodes) {
+  bf_graph = NodeGraph();
+  bf_graph.addStartNode(StartNode);
+  EXPECT_ANY_THROW(bf_graph.addStartNode(NextNode1));
+}
+
+TEST_F(NodeGraphTest, ValidGraph) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   bf_graph.addNode(NextNode2);
   bf_graph.addNode(FailEndNode);
   bf_graph.addNode(SuccessEndNode);
-  EXPECT_TRUE(bf_graph.allTransitionedToNodesExist());
+  EXPECT_NO_THROW(bf_graph.validateThatGraphIsComplete());
 }
 
-TEST_F(NodeGraphTest, CheckAllTransitionsExistFail) {
+TEST_F(NodeGraphTest, InvalidGraphMissingTransitionDestination) {
+  bf_graph = NodeGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
   bf_graph.addNode(NextNode2);
   bf_graph.addNode(FailEndNode);
-  EXPECT_FALSE(bf_graph.allTransitionedToNodesExist());
+  // No SuccessEndNode
+  EXPECT_ANY_THROW(bf_graph.validateThatGraphIsComplete());
+}
+
+TEST_F(NodeGraphTest, InvalidGraphMissingStartNode) {
+  bf_graph = NodeGraph();
+  bf_graph.addNode(NextNode1);
+  bf_graph.addNode(NextNode2);
+  bf_graph.addNode(FailEndNode);
+  bf_graph.addNode(SuccessEndNode);
+  EXPECT_ANY_THROW(bf_graph.validateThatGraphIsComplete());
+}
+
+TEST_F(NodeGraphTest, InvalidGraphWithUnreachableNode) {
+  const NodeGraph::NodeDescription UnreachableNode = {"OrphanNode",
+                                                      TestTaskNodeType,
+                                                      {
+                                                          {SuccessResultId, SuccessEndNodeId},
+                                                          {FailureResultId, FailEndNodeId},
+                                                      }};
+  bf_graph = NodeGraph();
+  bf_graph.addStartNode(StartNode);
+  bf_graph.addNode(NextNode1);
+  bf_graph.addNode(NextNode2);
+  bf_graph.addNode(FailEndNode);
+  bf_graph.addNode(SuccessEndNode);
+  bf_graph.addNode(UnreachableNode);
+  EXPECT_ANY_THROW(bf_graph.validateThatGraphIsComplete());
+}
+
+TEST_F(NodeGraphTest, GraphWithCircularConnections) {
+  const NodeId NextNodeId3 = "next3";
+  const NodeGraph::NodeDescription CircularNextNode2 = {NextNodeId2,
+                                                        TestTaskNodeType,
+                                                        {
+                                                            {SuccessResultId, NextNodeId3},
+                                                            {FailureResultId, NextNodeId2},
+                                                        }};
+  const NodeGraph::NodeDescription CircularNextNode3 = {NextNodeId3,
+                                                        TestTaskNodeType,
+                                                        {
+                                                            {SuccessResultId, SuccessEndNodeId},
+                                                            {FailureResultId, NextNodeId1},
+                                                        }};
+  bf_graph = NodeGraph();
+  bf_graph.addStartNode(StartNode);
+  bf_graph.addNode(NextNode1);
+  bf_graph.addNode(CircularNextNode2);
+  bf_graph.addNode(CircularNextNode3);
+  bf_graph.addNode(FailEndNode);
+  bf_graph.addNode(SuccessEndNode);
+  EXPECT_NO_THROW(bf_graph.validateThatGraphIsComplete());
+  EXPECT_EQ(bf_graph.getStartNode().node_id, StartNode.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(StartNode.node_id, TrueResultId).node_id, NextNode1.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(NextNode1.node_id, SuccessResultId).node_id, CircularNextNode2.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(CircularNextNode2.node_id, SuccessResultId).node_id, CircularNextNode3.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(CircularNextNode2.node_id, FailureResultId).node_id, CircularNextNode2.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(CircularNextNode3.node_id, SuccessResultId).node_id, SuccessEndNode.node_id);
+  EXPECT_EQ(bf_graph.getNextNode(CircularNextNode3.node_id, FailureResultId).node_id, NextNode1.node_id);
+}
+
+TEST_F(NodeGraphTest, EmptyGraph) { 
+  bf_graph = NodeGraph();
+  EXPECT_ANY_THROW(bf_graph.validateThatGraphIsComplete()); 
+}
+
+TEST_F(NodeGraphTest, InvalidGraphWithOnlyStartNode) {
+  bf_graph = NodeGraph();
+  bf_graph.addStartNode(StartNode);
+  EXPECT_ANY_THROW(bf_graph.validateThatGraphIsComplete());
+}
+
+TEST_F(NodeGraphTest, ValidGraphWithSingleNodeNoTransitions) {
+  bf_graph = NodeGraph();
+  bf_graph.addStartNode(FailEndNode);
+  EXPECT_NO_THROW(bf_graph.validateThatGraphIsComplete());
+}
+
+TEST_F(NodeGraphTest, AddInvalidTerminalNodeWithTransitions) {
+  bf_graph = NodeGraph();
+  EXPECT_ANY_THROW(bf_graph.addNode({FailEndNodeId,
+                             FailureNodeTypeId,
+                             {
+                                 {SuccessResultId, SuccessEndNodeId},
+                             }}));
+}
+
+TEST_F(NodeGraphTest, AddInvalidNonTerminalNodeWithoutTransitions) {
+  bf_graph = NodeGraph();
+  EXPECT_ANY_THROW(bf_graph.addNode({NextNodeId1, TestTaskNodeType, {}}));
 }

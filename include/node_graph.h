@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+
+#include "utils/behavior_flow_types.h"
 #include "utils/behavior_flow_utils.h"
 
 namespace bflow {
@@ -24,12 +26,17 @@ class NodeGraph {
   void addNode(const NodeDescription& node_description);
   NodeDescription getStartNode() const;
   NodeDescription getNextNode(const NodeId& from_node_id, const ResultId& result_id) const;
-  bool allTransitionedToNodesExist();
+  void validateThatGraphIsComplete() const;
+  const std::unordered_map<NodeId, NodeDescription>& getAllNodes() const {
+    return nodes_;
+  }
 
  private:
   void validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const;
   void validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id,
                                 const std::string& exception_msg) const;
+  void validateAllTransitionedToNodesExist() const;
+  void validateAllNodesAreReachableFromStart() const;
 
   NodeId start_node_id_;
   std::unordered_map<NodeId, NodeDescription> nodes_;

@@ -3,11 +3,12 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_NODE_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_NODE_H_
 
+#include <functional>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
-#include <functional>
-#include "utils/behavior_flow_utils.h"
+
+#include "utils/behavior_flow_types.h"
 
 namespace bflow {
 
@@ -24,10 +25,10 @@ namespace bflow {
 // }
 
 class BehaviorFlowNodeBase {
-public:
+ public:
   BehaviorFlowNodeBase() = default;
   virtual ~BehaviorFlowNodeBase() = default;
-  
+
   // No need to init... static and map
   // void init(const std::string& node_instance_name, );
   // ReturnType run();
@@ -38,14 +39,14 @@ public:
   // std::string getInstanceName() const { return node_instance_name_; }
   // virtual std::string getTypeName() const = 0; //todo: make static, use concepts
 
-// private:
-//   virtual void onInit() = 0;
-//   // virtual ResultId runNode() = 0; 
-//   virtual std::string runNode() = 0;
-//   virtual std::vector<std::string> getValidResultIds() = 0;
+  // private:
+  //   virtual void onInit() = 0;
+  //   // virtual ResultId runNode() = 0;
+  //   virtual std::string runNode() = 0;
+  //   virtual std::vector<std::string> getValidResultIds() = 0;
 
-//   bool initialized_ = false;
-//   std::string node_instance_name_;
+  //   bool initialized_ = false;
+  //   std::string node_instance_name_;
   // std::string node_description_;
 };
 
@@ -55,9 +56,10 @@ public:
 // }
 
 class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
-public:
+ public:
   SimpleBehaviorFlowNode() = delete;
-  SimpleBehaviorFlowNode(std::function<void()> execution_function) : execution_function_(execution_function){}
+  SimpleBehaviorFlowNode(std::function<void()> execution_function)
+      : execution_function_(execution_function) {}
 
   ResultId execute() override {
     if (!execution_function_) {
@@ -67,11 +69,9 @@ public:
     return "";
   }
 
-private:
+ private:
   std::function<void()> execution_function_;
 };
-
-
 
 // // REVIEW: is this class template really necessary?
 // // Or does it just add unneccesary complexity?
@@ -103,13 +103,10 @@ private:
 //   std::vector<std::string> getValidResultIds() override;
 // };
 
-
-
-
-
 // class TaskResult {
 //  public:
-//   TaskResult(TaskResultType type, const std::string& error_code = "", const std::string& error_message = "")
+//   TaskResult(TaskResultType type, const std::string& error_code = "", const std::string&
+//   error_message = "")
 //       : type_(type), error_code_(error_code), error_message_(error_message) {}
 
 //   std::string toString() const {

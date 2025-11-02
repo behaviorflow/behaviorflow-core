@@ -3,29 +3,32 @@
 #ifndef BEHAVIOR_FLOW__NODE_EXECUTOR_H_
 #define BEHAVIOR_FLOW__NODE_EXECUTOR_H_
 
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
+
 #include "behavior_flow_node.h"
 #include "node_factory.h"
-#include "node_registrar.h"
-#include "utils/behavior_flow_utils.h"
+#include "node_registry.h"
+#include "utils/behavior_flow_types.h"
 
-namespace bflow
-{
+namespace bflow {
 
 class NodeInstanceProvider {
-public:
-	explicit NodeInstanceProvider(NodeRegistrar registrar);
-	NodeInstanceProvider() = delete;;
-	const NodeWithMetadata& getNodeInstance(const NodeId& node_instance_id, const NodeTypeId& node_type_id);
-	
-private:
-	std::unordered_map<NodeId, NodeWithMetadata> node_instance_map_;
-	std::unordered_map<NodeId, NodeTypeId> node_type_map_;
-	NodeRegistrar registrar_;
+ public:
+  explicit NodeInstanceProvider(NodeRegistry&& registry);
+  NodeInstanceProvider() = default;
+
+  const NodeWithMetadata& getNodeInstance(const NodeId& node_instance_id,
+                                          const NodeTypeId& node_type_id);
+
+  void clear() { node_instance_map_.clear(); }
+
+ private:
+  std::unordered_map<NodeId, NodeWithMetadata> node_instance_map_;
+  NodeRegistry registry_;
 };
 
-} // namespace bflow
+}  // namespace bflow
 
 #endif  // BEHAVIOR_FLOW__NODE_EXECUTOR_H_

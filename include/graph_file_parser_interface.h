@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <filesystem>
 
 #include "node_graph.h"
 
@@ -24,15 +25,15 @@ public:
    * The default implementation reads the file into a string using getStringFromFile and then calls
    * parseGraphString. This can be overridden if needed.
    */
-  virtual std::unique_ptr<NodeGraph> parseGraphFile(std::string graph_file_path);
+  virtual NodeGraph parseGraphFile(const std::filesystem::path& graph_file_path);
 
   /**
    * @brief Parse a string representing a NodeGraph and return a NodeGraph object.
    */
-  virtual std::unique_ptr<NodeGraph> parseGraphString(std::string graph) = 0;
+  virtual NodeGraph parseGraphString(const std::string& graph) = 0;
 
  private:
-  std::string getStringFromFile(std::string graph_file_path);
+  std::string getStringFromFile(const std::filesystem::path& graph_file_path);
 };
 }  // end namespace bflow
 

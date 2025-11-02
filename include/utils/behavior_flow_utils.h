@@ -3,32 +3,29 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 
-#include <string>
-#include <memory>
+#include "utils/behavior_flow_types.h"
+#include <functional>
 
-namespace bflow
-{
-class BehaviorFlowNodeBase;
+namespace bflow {
+const NodeTypeId SuccessNodeTypeId = "Success";
+const NodeTypeId FailureNodeTypeId = "Failure";
 
-using NodeId = std::string;
-using NodeTypeId = std::string;
-using ResultId = std::string;
+inline bool isTerminalNodeType(const NodeTypeId& node_type_id) {
+  return (node_type_id == SuccessNodeTypeId) || (node_type_id == FailureNodeTypeId);
+}
 
-struct NodeTypeMetadata
-{
-	NodeTypeId node_type_id;
-	NodeId node_instance_id;
-	auto operator<=>(const NodeTypeMetadata&) const = default;
+// ScopeGuard utility for executing a lambda on scope exit
+class ScopeGuard {
+ public:
+  explicit ScopeGuard(std::function<void()> on_exit) : on_exit_(std::move(on_exit)) {}
+  ScopeGuard(const ScopeGuard&) = delete;
+  ScopeGuard& operator=(const ScopeGuard&) = delete;
+  ~ScopeGuard() { on_exit_(); }
+
+ private:
+  std::function<void()> on_exit_;
 };
 
-struct NodeWithMetadata
-{
-	NodeTypeMetadata metadata;
-	std::unique_ptr<BehaviorFlowNodeBase> node_instance;
-	auto operator<=>(const NodeWithMetadata&) const = default;
-};
-
-} // namespace bflow
-
+}  // namespace bflow
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
