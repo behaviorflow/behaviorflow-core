@@ -5,8 +5,8 @@
 #include <functional>
 #include <string>
 
-#include "utils/behavior_flow_types.h"
 #include "node_registry.h"
+#include "utils/behavior_flow_types.h"
 
 using namespace bflow;
 
@@ -63,4 +63,17 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
   EXPECT_TRUE(global_flag);
   EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
   EXPECT_EQ(node.metadata.node_instance_id, NodeInstanceId);
+}
+
+TEST_F(NodeRegistryTest, RegisterDuplicateNodeTypeThrows) {
+  const std::string NodeTypeId = "duplicateNodeType";
+  registry.registerSimpleNodeType(NodeTypeId, []() {});
+  EXPECT_ANY_THROW(registry.registerSimpleNodeType(NodeTypeId, []() {}));
+}
+
+TEST_F(NodeRegistryTest, InstantiateUnregisteredNodeTypeThrows) {
+  const std::string UnregisteredNodeTypeId = "unregisteredNodeType";
+  const std::string NodeInstanceId = "NodeInstance";
+  EXPECT_ANY_THROW(
+      NodeRegistryInstantiator::instantiateNode(registry, UnregisteredNodeTypeId, NodeInstanceId));
 }

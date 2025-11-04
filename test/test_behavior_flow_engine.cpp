@@ -12,38 +12,38 @@ using namespace bflow;
 
 class BehaviorFlowEngineTest : public ::testing::Test {
  protected:
-  const NodeTypeId SetFlag1NodeTypeId = "Set Flag 1";
-  const NodeTypeId SetFlag2NodeTypeId = "Set Flag 2";
+  const NodeTypeId IncrementCounterNodeTypeId = "Increment Counter";
+  const NodeTypeId ToggleFlagNodeTypeId = "Toggle Flag";
   const NodeId TestNodeId = "test_node";
-  bool flag1 = false;
-  bool flag2 = false;
+  int counter_ = 0;
+  bool flag_ = false;
 
   BehaviorFlowEngine bf_engine;
   void SetUp() override {
     NodeRegistry registry;
-    registry.registerSimpleNodeType(SetFlag1NodeTypeId, [this]() -> void {
-      flag1 = true;
-    });  // todo: seems like this is in another test, should make it a shared utility
-    registry.registerSimpleNodeType(SetFlag2NodeTypeId, [this]() -> void { flag2 = true; });
+    registry.registerSimpleNodeType(IncrementCounterNodeTypeId, [this]() -> void { counter_++; });
+    registry.registerSimpleNodeType(ToggleFlagNodeTypeId, [this]() -> void { flag_ = !flag_; });
 
     bf_engine = BehaviorFlowEngine(std::move(registry));
   }
 
-  std::vector<NodeGraph::NodeTypeDescription> node_type_descriptions_ = {{SetFlag1NodeTypeId, {""}},
-                                                                         {SetFlag2NodeTypeId, {""}},
-                                                                         {SuccessNodeTypeId, {}},
-                                                                         {FailureNodeTypeId, {}}};
+  std::vector<NodeGraph::NodeTypeDescription> node_type_descriptions_ = {
+      {IncrementCounterNodeTypeId, {""}},
+      {ToggleFlagNodeTypeId, {""}},
+      {SuccessNodeTypeId, {}},
+      {FailureNodeTypeId, {}}};
 };
 
 TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
   NodeGraph graph = NodeGraph(node_type_descriptions_,
-                              {{"node1", SetFlag1NodeTypeId, {{"", "node2"}}},
-                               {"node2", SetFlag2NodeTypeId, {{"", "end_success"}}},
+                              {{"node1", IncrementCounterNodeTypeId, {{"", "node2"}}},
+                               {"node2", IncrementCounterNodeTypeId, {{"", "node3"}}},
+                               {"node3", ToggleFlagNodeTypeId, {{"", "end_success"}}},
                                {"end_success", SuccessNodeTypeId, {}}},
                               "node1");
 
   BehaviorFlowResult result = bf_engine.execute(graph);
   EXPECT_EQ(result, BehaviorFlowResult::Success);
-  EXPECT_TRUE(flag1);
-  EXPECT_TRUE(flag2);
+  EXPECT_EQ(counter_, 2);
+  EXPECT_TRUE(flag_);
 }

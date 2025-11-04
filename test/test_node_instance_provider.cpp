@@ -57,6 +57,12 @@ TEST_F(NodeInstanceProviderTest, DifferentNodeTypesReturnDifferentInstances) {
   EXPECT_TRUE(flag_);
 }
 
+TEST_F(NodeInstanceProviderTest, ThrowsOnSameNodeIdDifferentTypes) {
+  provider->getNodeInstance("node1", "DummyNode");
+  EXPECT_ANY_THROW(provider->getNodeInstance("node1", "SetFlagTrue"));
+}
+
+
 TEST_F(NodeInstanceProviderTest, ThrowsOnInvalidNodeType) {
   EXPECT_ANY_THROW(provider->getNodeInstance("node1", "NonExistentNodeType"));
 }
