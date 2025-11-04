@@ -11,8 +11,37 @@
 
 namespace bflow {
 
+NodeGraph::NodeGraph(const std::vector<NodeTypeDescription>& node_types,
+                     const std::vector<NodeDescription>& nodes, const NodeId& start_node_id) {
+  bool start_node_found = false;
+  for (const auto& node_type : node_types) {
+    addNodeType(node_type);
+  }
+  for (const auto& node : nodes) {
+    if (node.node_id == start_node_id) {
+      addStartNode(node);
+      start_node_found = true;
+    } else {
+      addNode(node);
+    }
+  }
+  if (!start_node_found) {
+    throw std::runtime_error("Cannot construct NodeGraph: Start node with id '" + start_node_id +
+                             "' not found in provided nodes.");
+  }
+  validateThatGraphIsComplete();
+}
+
+void NodeGraph::addNodeType(const NodeTypeDescription& node_type_description) {
+  if (node_types_.find(node_type_description.node_type_id) != node_types_.end()) {
+    throw std::runtime_error("Cannot add node type '" + node_type_description.node_type_id +
+                             "' as a node type with that id already exists in the graph.");
+  }
+  node_types_.insert({node_type_description.node_type_id, node_type_description});
+}
+
 void NodeGraph::addStartNode(const NodeDescription& node_description) {
-  if (start_node_id_ != "") {  // assuming existing start node id is not empty string
+  if (!start_node_id_.empty()) {  // assuming existing start node id is not empty string
     throw std::runtime_error("Cannot add start node '" + node_description.node_id +
                              "' as a start node already exists in the graph.");
   }
@@ -25,17 +54,19 @@ void NodeGraph::addNode(const NodeDescription& node_description) {
     throw std::runtime_error("Cannot add node '" + node_description.node_id +
                              "' as a node with that id already exists in the graph.");
   }
-  if (isTerminalNodeType(node_description.node_type)) {
-    if (!node_description.transitions.empty()) {
-      throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
-                               node_description.node_type +
-                               "' as terminal nodes cannot have any transitions.");
-    }
+  auto node_type_description_it = node_types_.find(node_description.node_type);
+  if (node_type_description_it == node_types_.end()) {
+    throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
+                             node_description.node_type +
+                             "' as that node type has not been defined for this graph.");
   } else {
-    if (node_description.transitions.empty()) {
-      throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
-                               node_description.node_type +
-                               "' as non-terminal nodes must have at least one transition.");
+    const NodeTypeDescription& node_type_description = node_type_description_it->second;
+    auto transition_result_ids = node_description.transitions | std::views::keys;
+    if (!std::ranges::is_permutation(transition_result_ids, node_type_description.result_ids)) {
+      throw std::runtime_error("Cannot add node '" + node_description.node_id +
+                               "' as its transition result ids do not match "
+                               "the result ids for its node type '" +
+                               node_description.node_type + "'.");
     }
   }
   nodes_.insert({node_description.node_id, node_description});
@@ -46,14 +77,18 @@ NodeGraph::NodeDescription NodeGraph::getStartNode() const { return nodes_.at(st
 NodeGraph::NodeDescription NodeGraph::getNextNode(const NodeId& from_node_id,
                                                   const ResultId& result_id) const {
   validateNodeExists(from_node_id, "Cannot get the next node from '" + from_node_id +
-                                       "'. Node does not exist in the graph.");
+                                       "' as it does not exist in the graph.");
   validateTransitionExists(from_node_id, result_id,
                            "Cannot get the next node from '" + from_node_id + "' for transition '" +
-                               result_id + "', as the transition does not exist for that node.");
+                               result_id +
+                               "' as "
+                               "the transition does not exist for that node.");
   NodeDescription from_node = nodes_.at(from_node_id);
   NodeId next_node_id = from_node.transitions.at(result_id);
   validateNodeExists(next_node_id, "Cannot get the next node from '" + from_node_id +
-                                       "' for transition '" + result_id + "', as the next node '" +
+                                       "' for transition '" + result_id +
+                                       "' as the "
+                                       "next node '" +
                                        next_node_id + "' does not exist in the graph.");
   return nodes_.at(next_node_id);
 }

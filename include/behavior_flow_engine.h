@@ -28,6 +28,7 @@ class BehaviorFlowEngine {
   void setGraphFileParser(std::unique_ptr<GraphFileParserInterface> parser);
 
  private:
+  bool isTerminalNodeType(const NodeGraph::NodeDescription& node_description) const;
   void instantiateGraphNodes(const NodeGraph& graph);
   NodeRegistry node_registry_;
   NodeInstanceProvider node_instance_provider_;

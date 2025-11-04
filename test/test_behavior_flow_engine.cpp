@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 
 #include "behavior_flow_engine.h"
-#include "node_registry.h"
 #include "node_graph.h"
+#include "node_registry.h"
 #include "utils/behavior_flow_types.h"
 #include "utils/behavior_flow_utils.h"
 
@@ -19,39 +19,28 @@ class BehaviorFlowEngineTest : public ::testing::Test {
   bool flag2 = false;
 
   BehaviorFlowEngine bf_engine;
-  void SetUp() override { 
+  void SetUp() override {
     NodeRegistry registry;
-    registry.registerSimpleNodeType(
-        SetFlag1NodeTypeId,
-        [this]() -> void { flag1 = true; }); // todo: seems like this is in another test, should make it a shared utility
-    registry.registerSimpleNodeType(
-        SetFlag2NodeTypeId,
-        [this]() -> void { flag2 = true; });
+    registry.registerSimpleNodeType(SetFlag1NodeTypeId, [this]() -> void {
+      flag1 = true;
+    });  // todo: seems like this is in another test, should make it a shared utility
+    registry.registerSimpleNodeType(SetFlag2NodeTypeId, [this]() -> void { flag2 = true; });
 
     bf_engine = BehaviorFlowEngine(std::move(registry));
   }
+
+  std::vector<NodeGraph::NodeTypeDescription> node_type_descriptions_ = {{SetFlag1NodeTypeId, {""}},
+                                                                         {SetFlag2NodeTypeId, {""}},
+                                                                         {SuccessNodeTypeId, {}},
+                                                                         {FailureNodeTypeId, {}}};
 };
 
 TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
-  NodeGraph graph;
-  graph.addStartNode(
-      NodeGraph::NodeDescription{
-        .node_id = "node1",
-        .node_type = SetFlag1NodeTypeId,
-        .transitions = { {"", "node2"} }
-      });
-  graph.addNode(
-      NodeGraph::NodeDescription{
-        .node_id = "node2",
-        .node_type = SetFlag2NodeTypeId,
-        .transitions = { {"", "end_success"} }
-      });
-  graph.addNode(
-      NodeGraph::NodeDescription{
-        .node_id = "end_success",
-        .node_type = SuccessNodeTypeId,
-        .transitions = {}
-      });
+  NodeGraph graph = NodeGraph(node_type_descriptions_,
+                              {{"node1", SetFlag1NodeTypeId, {{"", "node2"}}},
+                               {"node2", SetFlag2NodeTypeId, {{"", "end_success"}}},
+                               {"end_success", SuccessNodeTypeId, {}}},
+                              "node1");
 
   BehaviorFlowResult result = bf_engine.execute(graph);
   EXPECT_EQ(result, BehaviorFlowResult::Success);

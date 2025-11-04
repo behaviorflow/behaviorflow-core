@@ -1,5 +1,9 @@
 #include "behavior_flow_engine.h"
+
 #include <cassert>
+
+#include "utils/behavior_flow_types.h"
+#include "utils/behavior_flow_utils.h"
 
 namespace bflow {
 
@@ -19,13 +23,13 @@ BehaviorFlowResult BehaviorFlowEngine::execute(const NodeGraph& graph) {
   instantiateGraphNodes(graph);
   NodeGraph::NodeDescription current_node = graph.getStartNode();
   ResultId result_id;
-  while (!isTerminalNodeType(current_node.node_type)) {
+  while (!isTerminalNodeType(current_node)) {
     const NodeWithMetadata& node_instance =
         node_instance_provider_.getNodeInstance(current_node.node_id, current_node.node_type);
     result_id = node_instance.node_instance->execute();
     current_node = graph.getNextNode(current_node.node_id, result_id);
   }
-  const NodeGraph::NodeDescription final_node = current_node;
+  const NodeGraph::NodeDescription& final_node = current_node;
   if (final_node.node_type == SuccessNodeTypeId) {
     return BehaviorFlowResult::Success;
   } else {
@@ -43,15 +47,21 @@ void BehaviorFlowEngine::instantiateGraphNodes(const NodeGraph& graph) {
   try {
     for (const auto& node : graph.getAllNodes()) {
       assert(node.first == node.second.node_id);
-      const NodeWithMetadata& node_instance = node_instance_provider_.getNodeInstance(node.first, node.second.node_type);
+      const NodeWithMetadata& node_instance =
+          node_instance_provider_.getNodeInstance(node.first, node.second.node_type);
       assert(node.first == node_instance.metadata.node_instance_id);
       assert(node.second.node_type == node_instance.metadata.node_type_id);
       // todo: once return types are implemented for BehaviorFlowNodeBase, validate that the return
       // 	types match the transitions in the graph
     }
   } catch (const std::exception& e) {
-    throw std::runtime_error("There was a problem instantiating the nodes from the node graph: " + std::string(e.what()));
+    throw std::runtime_error("There was a problem instantiating the nodes from the node graph: " +
+                             std::string(e.what()));
   }
 }
 
+bool BehaviorFlowEngine::isTerminalNodeType(
+    const NodeGraph::NodeDescription& node_description) const {
+  return node_description.transitions.empty();
+}
 }  // namespace bflow

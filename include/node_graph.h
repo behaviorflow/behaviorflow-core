@@ -21,15 +21,22 @@ class NodeGraph {
     std::map<ResultId, NodeId> transitions;
   };
 
+  struct NodeTypeDescription {
+    NodeTypeId node_type_id;
+    std::vector<ResultId> result_ids;
+  };
+
   NodeGraph() = default;
+  NodeGraph(const std::vector<NodeTypeDescription>& node_types,
+            const std::vector<NodeDescription>& nodes, const NodeId& start_node_id);
+
+  void addNodeType(const NodeTypeDescription& node_type_description);
   void addStartNode(const NodeDescription& node_description);
   void addNode(const NodeDescription& node_description);
   NodeDescription getStartNode() const;
   NodeDescription getNextNode(const NodeId& from_node_id, const ResultId& result_id) const;
   void validateThatGraphIsComplete() const;
-  const std::unordered_map<NodeId, NodeDescription>& getAllNodes() const {
-    return nodes_;
-  }
+  const std::unordered_map<NodeId, NodeDescription>& getAllNodes() const { return nodes_; }
 
  private:
   void validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const;
@@ -40,6 +47,7 @@ class NodeGraph {
 
   NodeId start_node_id_;
   std::unordered_map<NodeId, NodeDescription> nodes_;
+  std::unordered_map<NodeTypeId, NodeTypeDescription> node_types_;
 };
 
 }  // end namespace bflow

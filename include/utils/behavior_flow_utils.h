@@ -3,16 +3,13 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 
-#include "utils/behavior_flow_types.h"
 #include <functional>
 
-namespace bflow {
-const NodeTypeId SuccessNodeTypeId = "Success";
-const NodeTypeId FailureNodeTypeId = "Failure";
+#include "utils/behavior_flow_types.h"
 
-inline bool isTerminalNodeType(const NodeTypeId& node_type_id) {
-  return (node_type_id == SuccessNodeTypeId) || (node_type_id == FailureNodeTypeId);
-}
+namespace bflow {
+inline const NodeTypeId SuccessNodeTypeId = "Success";
+inline const NodeTypeId FailureNodeTypeId = "Failure";
 
 // ScopeGuard utility for executing a lambda on scope exit
 class ScopeGuard {
