@@ -18,7 +18,7 @@ const NodeWithMetadata& NodeInstanceProvider::getNodeInstance(const NodeId& node
     }
     return it->second;
   }
-  auto node = NodeRegistryInstantiator::instantiateNode(registry_, node_type_id, node_instance_id);
+  auto node = NodeRegistryInstantiator::instantiateNode(registry_, node_type_id);
   node_instance_map_[node_instance_id] = std::move(node);
   return node_instance_map_[node_instance_id];
 }

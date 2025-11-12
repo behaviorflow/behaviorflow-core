@@ -6,7 +6,7 @@
 #include "node_graph.h"
 #include "node_registry.h"
 #include "utils/behavior_flow_types.h"
-#include "utils/behavior_flow_utils.h"
+#include "standard_node_library.h"
 
 using namespace bflow;
 
@@ -46,4 +46,15 @@ TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
   EXPECT_EQ(result, BehaviorFlowResult::Success);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
+}
+
+TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
+  NodeGraph graph = NodeGraph(node_type_descriptions_,
+                              {{"node1", IncrementCounterNodeTypeId, {{"", "failure_node"}}},
+                               {"failure_node", FailureNodeTypeId, {}}},
+                              "node1");
+
+  BehaviorFlowResult result = bf_engine.execute(graph);
+  EXPECT_EQ(result, BehaviorFlowResult::Failure);
+  EXPECT_EQ(counter_, 1);
 }

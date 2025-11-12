@@ -26,7 +26,6 @@ TEST_F(NodeInstanceProviderTest, SameNodeIdReturnsSameInstance) {
   const NodeWithMetadata& instance2 = provider->getNodeInstance("node1", "DummyNode");
   EXPECT_EQ(&instance1, &instance2);
   EXPECT_EQ(instance1.metadata.node_type_id, "DummyNode");
-  EXPECT_EQ(instance1.metadata.node_instance_id, "node1");
   EXPECT_NE(instance1.node_instance, nullptr);
 }
 
@@ -36,8 +35,6 @@ TEST_F(NodeInstanceProviderTest, DifferentNodeIdsReturnDifferentInstances) {
   EXPECT_NE(&instance1, &instance2);
   EXPECT_EQ(instance1.metadata.node_type_id, "DummyNode");
   EXPECT_EQ(instance2.metadata.node_type_id, "DummyNode");
-  EXPECT_EQ(instance1.metadata.node_instance_id, "node1");
-  EXPECT_EQ(instance2.metadata.node_instance_id, "node2");
   EXPECT_NE(instance1.node_instance, nullptr);
   EXPECT_NE(instance2.node_instance, nullptr);
   EXPECT_NE(instance1.node_instance, instance2.node_instance);
@@ -49,8 +46,6 @@ TEST_F(NodeInstanceProviderTest, DifferentNodeTypesReturnDifferentInstances) {
   EXPECT_NE(&instance1, &instance2);
   EXPECT_EQ(instance1.metadata.node_type_id, "DummyNode");
   EXPECT_EQ(instance2.metadata.node_type_id, "SetFlagTrue");
-  EXPECT_EQ(instance1.metadata.node_instance_id, "node1");
-  EXPECT_EQ(instance2.metadata.node_instance_id, "node2");
   instance1.node_instance->execute();
   EXPECT_FALSE(flag_);
   instance2.node_instance->execute();

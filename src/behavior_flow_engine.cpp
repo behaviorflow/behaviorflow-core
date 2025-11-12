@@ -4,6 +4,7 @@
 
 #include "utils/behavior_flow_types.h"
 #include "utils/behavior_flow_utils.h"
+#include "standard_node_library.h"
 
 namespace bflow {
 
@@ -45,12 +46,11 @@ void BehaviorFlowEngine::instantiateGraphNodes(const NodeGraph& graph) {
   // Instantiate all of the nodes up front to catch any issues before execution begins
   // Todo: We could provide a configuration option to lazy load
   try {
-    for (const auto& node : graph.getAllNodes()) {
-      assert(node.first == node.second.node_id);
+    for (const auto& [node_id, node_description] : graph.getAllNodes()) {
+      assert(node_id == node_description.node_id); // Sanity check
       const NodeWithMetadata& node_instance =
-          node_instance_provider_.getNodeInstance(node.first, node.second.node_type);
-      assert(node.first == node_instance.metadata.node_instance_id);
-      assert(node.second.node_type == node_instance.metadata.node_type_id);
+          node_instance_provider_.getNodeInstance(node_id, node_description.node_type);
+      assert(node_description.node_type == node_instance.metadata.node_type_id);
       // todo: once return types are implemented for BehaviorFlowNodeBase, validate that the return
       // 	types match the transitions in the graph
     }

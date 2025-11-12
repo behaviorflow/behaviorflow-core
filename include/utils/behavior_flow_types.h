@@ -17,7 +17,6 @@ using ResultId = std::string;
 struct NodeTypeMetadata
 {
 	NodeTypeId node_type_id;
-	NodeId node_instance_id;
 	auto operator<=>(const NodeTypeMetadata&) const = default;
 };
 

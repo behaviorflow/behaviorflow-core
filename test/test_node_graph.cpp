@@ -18,6 +18,8 @@ class NodeGraphTest : public ::testing::Test {
   const NodeId SuccessEndNodeId = "success_end";
   const NodeTypeId TestTaskNodeType = "task";
   const NodeTypeId TestConditionNodeType = "condition";
+  const NodeTypeId SuccessNodeType = "success";
+  const NodeTypeId FailureNodeType = "failure";
   const ResultId SuccessResultId = "Success";
   const ResultId FailureResultId = "Failure";
   const ResultId TrueResultId = "True";
@@ -40,14 +42,14 @@ class NodeGraphTest : public ::testing::Test {
                                                     {SuccessResultId, SuccessEndNodeId},
                                                     {FailureResultId, FailEndNodeId},
                                                 }};
-  const NodeGraph::NodeDescription FailEndNode = {FailEndNodeId, FailureNodeTypeId, {}};
-  const NodeGraph::NodeDescription SuccessEndNode = {SuccessEndNodeId, SuccessNodeTypeId, {}};
+  const NodeGraph::NodeDescription FailEndNode = {FailEndNodeId, FailureNodeType, {}};
+  const NodeGraph::NodeDescription SuccessEndNode = {SuccessEndNodeId, SuccessNodeType, {}};
 
   void addNodeTypesToGraph() {
     bf_graph.addNodeType({TestConditionNodeType, {TrueResultId, FalseResultId}});
     bf_graph.addNodeType({TestTaskNodeType, {SuccessResultId, FailureResultId}});
-    bf_graph.addNodeType({FailureNodeTypeId, {}});
-    bf_graph.addNodeType({SuccessNodeTypeId, {}});
+    bf_graph.addNodeType({FailureNodeType, {}});
+    bf_graph.addNodeType({SuccessNodeType, {}});
   };
 };
 
@@ -264,8 +266,8 @@ TEST_F(NodeGraphTest, GraphConstructedFromContructorArguments) {
       {
           {TestConditionNodeType, {TrueResultId, FalseResultId}},
           {TestTaskNodeType, {SuccessResultId, FailureResultId}},
-          {FailureNodeTypeId, {}},
-          {SuccessNodeTypeId, {}},
+          {FailureNodeType, {}},
+          {SuccessNodeType, {}},
       },
       {
           StartNode,
@@ -289,8 +291,8 @@ TEST_F(NodeGraphTest, GraphConstructedFromContructorArgumentsMissingStartNode) {
                        {
                            {TestConditionNodeType, {TrueResultId, FalseResultId}},
                            {TestTaskNodeType, {SuccessResultId, FailureResultId}},
-                           {FailureNodeTypeId, {}},
-                           {SuccessNodeTypeId, {}},
+                           {FailureNodeType, {}},
+                           {SuccessNodeType, {}},
                        },
                        {
                            NextNode1,

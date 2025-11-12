@@ -34,8 +34,7 @@ class NodeRegistry {
 class NodeRegistryInstantiator {
  public:
   static NodeWithMetadata instantiateNode(const NodeRegistry& registry,
-                                          const NodeTypeId& node_type_id,
-                                          const NodeId& node_instance_id);
+                                          const NodeTypeId& node_type_id);
 };
 
 // template <typename ReturnT, typename ReturnTInterpreter>
