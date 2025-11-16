@@ -22,6 +22,8 @@ class NodeInstanceProvider {
   const NodeWithMetadata& getNodeInstance(const NodeId& node_instance_id,
                                           const NodeTypeId& node_type_id);
 
+  std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeTypeId& node_type_id) const;
+
   void clear() { node_instance_map_.clear(); }
 
  private:

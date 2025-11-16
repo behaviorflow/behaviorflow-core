@@ -23,4 +23,9 @@ const NodeWithMetadata& NodeInstanceProvider::getNodeInstance(const NodeId& node
   return node_instance_map_[node_instance_id];
 }
 
+std::optional<NodeTypeMetadata> NodeInstanceProvider::getNodeTypeMetadata(
+    const NodeTypeId& node_type_id) const {
+  return NodeTypeMetadataViewer::getNodeTypeMetadata(registry_, node_type_id);
+}
+
 }  // namespace bflow

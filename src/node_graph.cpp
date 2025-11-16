@@ -3,11 +3,12 @@
 #include "node_graph.h"
 
 #include <algorithm>
-#include <iostream>
 #include <ranges>
 #include <sstream>
 #include <stack>
 #include <unordered_set>
+
+#include "utils/behavior_flow_utils.h"
 
 namespace bflow {
 
@@ -64,9 +65,12 @@ void NodeGraph::addNode(const NodeDescription& node_description) {
     auto transition_result_ids = node_description.transitions | std::views::keys;
     if (!std::ranges::is_permutation(transition_result_ids, node_type_description.result_ids)) {
       throw std::runtime_error("Cannot add node '" + node_description.node_id +
-                               "' as its transition result ids do not match "
+                               "' as its transition result ids (" +
+                               joinStrings(transition_result_ids, ", ") +
+                               ") do not match "
                                "the result ids for its node type '" +
-                               node_description.node_type + "'.");
+                               node_description.node_type + "' (" +
+                               joinStrings(node_type_description.result_ids, ", ") + ").");
     }
   }
   nodes_.insert({node_description.node_id, node_description});
@@ -129,14 +133,8 @@ void NodeGraph::validateAllTransitionedToNodesExist() const {
                             "are not defined within the node graph:\n";
         found_invalid = true;
       }
-      error_msg_stream << "  * Node \"" << node_id << "\" connects to nonexistant node(s): ";
-      bool first = true;
-      for (const auto& target : nonexistant_transition_range) {
-        if (!first) error_msg_stream << ", ";
-        error_msg_stream << "\"" << target << "\"";
-        first = false;
-      }
-      error_msg_stream << "\n";
+      error_msg_stream << "  * Node \"" << node_id << "\" connects to nonexistant node(s): "
+                       << joinStrings(nonexistant_transition_range, ", ") << "\n";
     }
   }
   if (found_invalid) {
@@ -160,13 +158,18 @@ void NodeGraph::validateAllNodesAreReachableFromStart() const {
                        return !visited.contains(id);
                      });
   if (!std::ranges::empty(unreachable)) {
-    std::ostringstream error_msg_stream;
-    error_msg_stream << "Graph validation failed: Unreachable node(s): ";
-    for (const auto& id : unreachable) error_msg_stream << "'" << id << "', ";
-    std::string error_msg = error_msg_stream.str();
-    error_msg = error_msg.substr(0, error_msg.size() - 2);
-    throw std::runtime_error(error_msg);
+    throw std::runtime_error("Graph validation failed: Unreachable node(s): " +
+                             joinStrings(unreachable, ", "));
   }
+}
+
+const std::unordered_map<NodeId, NodeGraph::NodeDescription>& NodeGraph::getAllNodes() const {
+  return nodes_;
+}
+
+const std::unordered_map<NodeTypeId, NodeGraph::NodeTypeDescription>& NodeGraph::getAllNodeTypes()
+    const {
+  return node_types_;
 }
 
 }  // end namespace bflow

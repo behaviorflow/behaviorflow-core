@@ -36,7 +36,8 @@ class NodeGraph {
   NodeDescription getStartNode() const;
   NodeDescription getNextNode(const NodeId& from_node_id, const ResultId& result_id) const;
   void validateThatGraphIsComplete() const;
-  const std::unordered_map<NodeId, NodeDescription>& getAllNodes() const { return nodes_; }
+  const std::unordered_map<NodeId, NodeDescription>& getAllNodes() const;
+  const std::unordered_map<NodeTypeId, NodeTypeDescription>& getAllNodeTypes() const;
 
  private:
   void validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const;

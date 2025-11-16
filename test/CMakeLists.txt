@@ -6,6 +6,7 @@ set(TEST_SOURCES
     # test_graph_file_parser_json.cpp
     test_behavior_flow_engine.cpp
     # test_behavior_flow_node.cpp
+    behavior_flow_utils_test.cpp
     src/nodes_for_testing.cpp
 )
 

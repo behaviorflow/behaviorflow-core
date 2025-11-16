@@ -5,8 +5,8 @@
 #include "behavior_flow_engine.h"
 #include "node_graph.h"
 #include "node_registry.h"
-#include "utils/behavior_flow_types.h"
 #include "standard_node_library.h"
+#include "utils/behavior_flow_types.h"
 
 using namespace bflow;
 
@@ -23,7 +23,6 @@ class BehaviorFlowEngineTest : public ::testing::Test {
     NodeRegistry registry;
     registry.registerSimpleNodeType(IncrementCounterNodeTypeId, [this]() -> void { counter_++; });
     registry.registerSimpleNodeType(ToggleFlagNodeTypeId, [this]() -> void { flag_ = !flag_; });
-
     bf_engine = BehaviorFlowEngine(std::move(registry));
   }
 
@@ -58,3 +57,22 @@ TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
   EXPECT_EQ(result, BehaviorFlowResult::Failure);
   EXPECT_EQ(counter_, 1);
 }
+
+TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
+  NodeGraph graph = NodeGraph({{"UnregisteredNodeType", {""}}, {SuccessNodeTypeId, {}}},
+                              {{"node1", "UnregisteredNodeType", {{"", "end_success"}}},
+                               {"end_success", SuccessNodeTypeId, {}}},
+                              "node1");
+  EXPECT_ANY_THROW(bf_engine.execute(graph));
+}
+
+TEST_F(BehaviorFlowEngineTest, NodeTypeResultMismatchThrows) {
+  NodeGraph graph =
+      NodeGraph({{IncrementCounterNodeTypeId, {"InvalidResultType"}}, {SuccessNodeTypeId, {}}},
+                {{"node1", IncrementCounterNodeTypeId, {{"InvalidResultType", "success_node"}}},
+                 {"success_node", SuccessNodeTypeId, {}}},
+                "node1");
+  EXPECT_ANY_THROW(bf_engine.execute(graph));
+}
+
+// Result type mismatch

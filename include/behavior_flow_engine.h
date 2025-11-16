@@ -29,8 +29,8 @@ class BehaviorFlowEngine {
 
  private:
   bool isTerminalNodeType(const NodeGraph::NodeDescription& node_description) const;
+  void validateThatGraphMatchesRegisteredNodeTypes(const NodeGraph& graph) const;
   void instantiateGraphNodes(const NodeGraph& graph);
-  NodeRegistry node_registry_;
   NodeInstanceProvider node_instance_provider_;
   std::unique_ptr<GraphFileParserInterface> graph_file_parser_;
 };

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace bflow
 {
@@ -17,6 +18,7 @@ using ResultId = std::string;
 struct NodeTypeMetadata
 {
 	NodeTypeId node_type_id;
+	std::vector<ResultId> valid_result_ids;
 	auto operator<=>(const NodeTypeMetadata&) const = default;
 };
 

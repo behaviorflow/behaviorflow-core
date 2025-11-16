@@ -7,8 +7,7 @@
 namespace bflow {
 
 void register_standard_library(NodeRegistry& registry) {
-  registry.registerSimpleNodeType(SuccessNodeTypeId, []() -> void {});
-  registry.registerSimpleNodeType(FailureNodeTypeId, []() -> void {});
+  // populate
 }
 
 }  // namespace bflow

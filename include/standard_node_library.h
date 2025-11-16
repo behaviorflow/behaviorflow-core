@@ -7,8 +7,6 @@
 
 namespace bflow {
 
-inline const NodeTypeId SuccessNodeTypeId = "Success";
-inline const NodeTypeId FailureNodeTypeId = "Failure";
 // ExecutionCountExceedsThresholdNodeTypeId
 
 void register_standard_library(NodeRegistry& registry);

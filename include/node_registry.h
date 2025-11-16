@@ -4,6 +4,7 @@
 #define BEHAVIOR_FLOW__NODE_REGISTRY_H_
 
 #include <map>
+#include <optional>
 
 #include "behavior_flow_node.h"
 #include "node_factory.h"
@@ -16,25 +17,29 @@ class NodeRegistry {
   NodeRegistry();
 
   void registerSimpleNodeType(const NodeTypeId& node_type_id,
-                              std::function<void()> execution_function) {
-    node_factory_->registerNodeType<SimpleBehaviorFlowNode>(node_type_id, execution_function);
-    registerMetadata(node_type_id);
-  }
+                              std::function<void()> execution_function);
 
  private:
-  void registerMetadata(const NodeTypeId& node_type_id);  // this exists assuming metadata will
-                                                          // expand to more than just the node ID.
+  void registerMetadata(const NodeTypeMetadata& metadata);
+  void registerTerminalNodeType(const NodeTypeId& node_type_id);
 
   std::unique_ptr<NodeFactory> node_factory_;
   std::map<NodeTypeId, NodeTypeMetadata> node_type_metadata_;
 
   friend class NodeRegistryInstantiator;
+  friend class NodeTypeMetadataViewer;
 };
 
 class NodeRegistryInstantiator {
  public:
   static NodeWithMetadata instantiateNode(const NodeRegistry& registry,
                                           const NodeTypeId& node_type_id);
+};
+
+class NodeTypeMetadataViewer {
+ public:
+  static std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeRegistry& registry,
+                                                             const NodeTypeId& node_type_id);
 };
 
 // template <typename ReturnT, typename ReturnTInterpreter>
