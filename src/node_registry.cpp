@@ -39,20 +39,14 @@ void NodeRegistry::registerMetadata(const NodeTypeMetadata& metadata) {
   node_type_metadata_[metadata.node_type_id] = metadata;
 }
 
-NodeWithMetadata NodeRegistryInstantiator::instantiateNode(const NodeRegistry& registry,
+std::unique_ptr<BehaviorFlowNodeBase> NodeRegistryAccessor::instantiateNode(const NodeRegistry& registry,
                                                            const NodeTypeId& node_type_id) {
-  auto metadata_it = registry.node_type_metadata_.find(node_type_id);
-  if (metadata_it == registry.node_type_metadata_.end()) {
-    throw std::runtime_error("Unable to instantiate node with node type '" + node_type_id +
-                             "' because no such node type has been registered.");
-  }
-  NodeTypeMetadata metadata = metadata_it->second;
   std::unique_ptr<BehaviorFlowNodeBase> node_instance =
       registry.node_factory_->createNodeInstance(node_type_id);
-  return NodeWithMetadata{.metadata = metadata, .node_instance = std::move(node_instance)};
+  return std::move(node_instance);
 }
 
-std::optional<NodeTypeMetadata> NodeTypeMetadataViewer::getNodeTypeMetadata(
+std::optional<NodeTypeMetadata> NodeRegistryAccessor::getNodeTypeMetadata(
     const NodeRegistry& registry, const NodeTypeId& node_type_id) {
   auto metadata_it = registry.node_type_metadata_.find(node_type_id);
   if (metadata_it == registry.node_type_metadata_.end()) {

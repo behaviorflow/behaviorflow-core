@@ -28,9 +28,9 @@ BehaviorFlowResult BehaviorFlowEngine::execute(const NodeGraph& graph) {
   NodeGraph::NodeDescription current_node = graph.getStartNode();
   ResultId result_id;
   while (!isTerminalNodeType(current_node)) {
-    const NodeWithMetadata& node_instance =
+    BehaviorFlowNodeBase& node_instance =
         node_instance_provider_.getNodeInstance(current_node.node_id, current_node.node_type);
-    result_id = node_instance.node_instance->execute();
+    result_id = node_instance.execute();
     current_node = graph.getNextNode(current_node.node_id, result_id);
   }
   const NodeGraph::NodeDescription& final_node = current_node;
@@ -48,15 +48,10 @@ void BehaviorFlowEngine::setGraphFileParser(std::unique_ptr<GraphFileParserInter
 void BehaviorFlowEngine::instantiateGraphNodes(const NodeGraph& graph) {
   // Instantiate all of the nodes up front to catch any issues before execution begins
   // Todo: We could provide a configuration option to lazy load
-  const auto& graph_node_types = graph.getAllNodeTypes();
   try {
     for (const auto& [node_id, node_description] : graph.getAllNodes()) {
       assert(node_id == node_description.node_id);  // Sanity check
-      const NodeWithMetadata& node_instance =
-          node_instance_provider_.getNodeInstance(node_id, node_description.node_type);
-      assert(node_description.node_type == node_instance.metadata.node_type_id);
-      const NodeGraph::NodeTypeDescription& graph_node_type =
-          graph_node_types.at(node_description.node_type);
+      node_instance_provider_.getNodeInstance(node_id, node_description.node_type);
     }
   } catch (const std::exception& e) {
     throw std::runtime_error("There was a problem instantiating the nodes from the node graph: " +

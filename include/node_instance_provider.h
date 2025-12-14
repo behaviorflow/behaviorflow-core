@@ -19,7 +19,7 @@ class NodeInstanceProvider {
   explicit NodeInstanceProvider(NodeRegistry&& registry);
   NodeInstanceProvider() = default;
 
-  const NodeWithMetadata& getNodeInstance(const NodeId& node_instance_id,
+  BehaviorFlowNodeBase& getNodeInstance(const NodeId& node_instance_id,
                                           const NodeTypeId& node_type_id);
 
   std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeTypeId& node_type_id) const;
@@ -27,7 +27,7 @@ class NodeInstanceProvider {
   void clear() { node_instance_map_.clear(); }
 
  private:
-  std::unordered_map<NodeId, NodeWithMetadata> node_instance_map_;
+  std::unordered_map<NodeId, std::pair<NodeTypeId, std::unique_ptr<BehaviorFlowNodeBase>>> node_instance_map_;
   NodeRegistry registry_;
 };
 

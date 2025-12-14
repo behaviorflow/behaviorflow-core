@@ -26,18 +26,14 @@ class NodeRegistry {
   std::unique_ptr<NodeFactory> node_factory_;
   std::map<NodeTypeId, NodeTypeMetadata> node_type_metadata_;
 
-  friend class NodeRegistryInstantiator;
-  friend class NodeTypeMetadataViewer;
+  friend class NodeRegistryAccessor;
 };
 
-class NodeRegistryInstantiator {
+// Accessor class for retrieving stuff from NodeRegistry, to keep NodeRegistry's API user/register-facing
+class NodeRegistryAccessor {
  public:
-  static NodeWithMetadata instantiateNode(const NodeRegistry& registry,
-                                          const NodeTypeId& node_type_id);
-};
-
-class NodeTypeMetadataViewer {
- public:
+  static std::unique_ptr<BehaviorFlowNodeBase> instantiateNode(const NodeRegistry& registry,
+                                                               const NodeTypeId& node_type_id);
   static std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeRegistry& registry,
                                                              const NodeTypeId& node_type_id);
 };

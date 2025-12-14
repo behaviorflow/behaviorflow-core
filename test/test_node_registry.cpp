@@ -30,33 +30,45 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithLambda) {
   const std::string NodeTypeId = "registerSimpleNode";
   auto local_flag = std::make_shared<bool>(false);
   registry.registerSimpleNodeType(NodeTypeId, [local_flag]() { *local_flag = true; });
-  NodeWithMetadata node =
-      NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-  node.node_instance->execute();
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+  node->execute();
   EXPECT_TRUE(*local_flag);
-  EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+
+  std::optional<NodeTypeMetadata> metadata =
+      NodeRegistryAccessor::getNodeTypeMetadata(registry, NodeTypeId);
+  ASSERT_TRUE(metadata.has_value());
+  EXPECT_EQ(metadata->node_type_id, NodeTypeId);
 }
 
 TEST_F(NodeRegistryTest, RegisterSimpleNodeWithBind) {
   setFlagFalse();
   const std::string NodeTypeId = "registerSimpleNodeWithBind";
   registry.registerSimpleNodeType(NodeTypeId, std::bind(&NodeRegistryTest::setFlagTrue, this));
-  NodeWithMetadata node =
-      NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-  node.node_instance->execute();
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+  node->execute();
   EXPECT_TRUE(member_flag_);
-  EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+
+  std::optional<NodeTypeMetadata> metadata =
+      NodeRegistryAccessor::getNodeTypeMetadata(registry, NodeTypeId);
+  ASSERT_TRUE(metadata.has_value());
+  EXPECT_EQ(metadata->node_type_id, NodeTypeId);
 }
 
 TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
   global_flag = false;
   const std::string NodeTypeId = "registerSimpleNodeWithFunctionPointer";
   registry.registerSimpleNodeType(NodeTypeId, setGlobalFlagTrue);
-  NodeWithMetadata node =
-      NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-  node.node_instance->execute();
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+  node->execute();
   EXPECT_TRUE(global_flag);
-  EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
+
+  std::optional<NodeTypeMetadata> metadata =
+      NodeRegistryAccessor::getNodeTypeMetadata(registry, NodeTypeId);
+  ASSERT_TRUE(metadata.has_value());
+  EXPECT_EQ(metadata->node_type_id, NodeTypeId);
 }
 
 // TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctorType) {
@@ -70,16 +82,16 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
 //   };
 //   const std::string NodeTypeId = "FunctorNode";
 //   registry.registerSimpleNodeType<Functor>(NodeTypeId);
-//   NodeWithMetadata node1 =
-//       NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-//   NodeWithMetadata node2 =
-//       NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-//   node1.node_instance->execute();
+//   std::unique_ptr<BehaviorFlowNodeBase> node1 =
+//       NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+//   std::unique_ptr<BehaviorFlowNodeBase> node2 =
+//       NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+//   node1->execute();
 //   EXPECT_EQ(node1.metadata.node_type_id, NodeTypeId);
 //   EXPECT_EQ(global_counter, 1);
-//   node2.node_instance->execute();
+//   node2->execute();
 //   EXPECT_EQ(global_counter, 3);  // 1 + 2 from two different instances
-//   node2.node_instance->execute();
+//   node2->execute();
 //   EXPECT_EQ(global_counter, 4); // Node 2 should have its own state
 // }
 
@@ -93,9 +105,9 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
 //   Functor functor;
 //   const std::string NodeTypeId = "FunctorNode";
 //   registry.registerSimpleNodeType(NodeTypeId, functor);
-//   NodeWithMetadata node =
-//       NodeRegistryInstantiator::instantiateNode(registry, NodeTypeId);
-//   node.node_instance->execute();
+//   std::unique_ptr<BehaviorFlowNodeBase> node =
+//       NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
+//   node->execute();
 //   EXPECT_EQ(node.metadata.node_type_id, NodeTypeId);
 //   EXPECT_EQ(functor.counter_, 1);
 // }
@@ -106,8 +118,7 @@ TEST_F(NodeRegistryTest, RegisterDuplicateNodeTypeThrows) {
   EXPECT_ANY_THROW(registry.registerSimpleNodeType(NodeTypeId, []() {}));
 }
 
-TEST_F(NodeRegistryTest, InstantiateUnregisteredNodeTypeThrows) {
+TEST_F(NodeRegistryTest, InstantiateUnregisteredNodeType) {
   const std::string UnregisteredNodeTypeId = "unregisteredNodeType";
-  EXPECT_ANY_THROW(
-      NodeRegistryInstantiator::instantiateNode(registry, UnregisteredNodeTypeId));
+  EXPECT_EQ(NodeRegistryAccessor::instantiateNode(registry, UnregisteredNodeTypeId), nullptr);
 }

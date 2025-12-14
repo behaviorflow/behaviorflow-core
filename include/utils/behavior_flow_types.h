@@ -22,13 +22,6 @@ struct NodeTypeMetadata
 	auto operator<=>(const NodeTypeMetadata&) const = default;
 };
 
-struct NodeWithMetadata
-{
-	NodeTypeMetadata metadata;
-	std::unique_ptr<BehaviorFlowNodeBase> node_instance;
-	auto operator<=>(const NodeWithMetadata&) const = default;
-};
-
 } // namespace bflow
 
 
