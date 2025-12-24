@@ -27,7 +27,7 @@ class NodeRegistryTest : public ::testing::Test {
 };
 
 TEST_F(NodeRegistryTest, RegisterSimpleNodeWithLambda) {
-  const std::string NodeTypeId = "registerSimpleNode";
+  const NodeTypeId NodeTypeId{"registerSimpleNode"};
   auto local_flag = std::make_shared<bool>(false);
   registry.registerSimpleNodeType(NodeTypeId, [local_flag]() { *local_flag = true; });
   std::unique_ptr<BehaviorFlowNodeBase> node =
@@ -43,7 +43,7 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithLambda) {
 
 TEST_F(NodeRegistryTest, RegisterSimpleNodeWithBind) {
   setFlagFalse();
-  const std::string NodeTypeId = "registerSimpleNodeWithBind";
+  const NodeTypeId NodeTypeId{"registerSimpleNodeWithBind"};
   registry.registerSimpleNodeType(NodeTypeId, std::bind(&NodeRegistryTest::setFlagTrue, this));
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
@@ -58,7 +58,7 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithBind) {
 
 TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
   global_flag = false;
-  const std::string NodeTypeId = "registerSimpleNodeWithFunctionPointer";
+  const NodeTypeId NodeTypeId{"registerSimpleNodeWithFunctionPointer"};
   registry.registerSimpleNodeType(NodeTypeId, setGlobalFlagTrue);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, NodeTypeId);
@@ -113,12 +113,12 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
 // }
 
 TEST_F(NodeRegistryTest, RegisterDuplicateNodeTypeThrows) {
-  const std::string NodeTypeId = "duplicateNodeType";
+  const NodeTypeId NodeTypeId{"duplicateNodeType"};
   registry.registerSimpleNodeType(NodeTypeId, []() {});
   EXPECT_ANY_THROW(registry.registerSimpleNodeType(NodeTypeId, []() {}));
 }
 
 TEST_F(NodeRegistryTest, InstantiateUnregisteredNodeType) {
-  const std::string UnregisteredNodeTypeId = "unregisteredNodeType";
+  const NodeTypeId UnregisteredNodeTypeId{"unregisteredNodeType"};
   EXPECT_EQ(NodeRegistryAccessor::instantiateNode(registry, UnregisteredNodeTypeId), nullptr);
 }

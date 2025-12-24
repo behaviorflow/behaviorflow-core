@@ -1,17 +1,14 @@
 #ifndef BEHAVIOR_FLOW__TEST__TEST_NODES_H_
 #define BEHAVIOR_FLOW__TEST__TEST_NODES_H_
 
-#include <iostream>
-
 #include "behavior_flow_node.h"
 
 namespace bflow {
 
-
 class TestNodeBasic : public BehaviorFlowNodeBase {
  public:
   TestNodeBasic() = default;
-  ResultId execute() override {return "";};
+  ResultId execute() override { return ResultId(""); };
 };
 
 class TestNodeWithConstructorParams : public BehaviorFlowNodeBase {
@@ -21,7 +18,7 @@ class TestNodeWithConstructorParams : public BehaviorFlowNodeBase {
       : param1_(param1), param2_(param2) {}
   int getParam1() { return param1_; }
   std::string getParam2() { return param2_; }
-  ResultId execute() override {return "";};
+  ResultId execute() override { return ResultId(""); };
 
  private:
   int param1_;

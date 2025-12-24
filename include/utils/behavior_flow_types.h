@@ -3,26 +3,65 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_TYPES_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_TYPES_H_
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
-namespace bflow
-{
+namespace bflow {
+
 class BehaviorFlowNodeBase;
 
-using NodeId = std::string;
-using NodeTypeId = std::string;
-using ResultId = std::string;
+template <typename Tag>
+struct Id {
+ public:
+  explicit Id(const std::string& v) : value_(v) {}
+  Id() = default;
+  bool operator==(const Id& other) const { return value_ == other.value(); }
+  bool operator!=(const Id& other) const { return value_ != other.value(); }
+  auto operator<=>(const Id&) const = default;
+  bool empty() const { return value_.empty(); }
+  const std::string& value() const { return value_; }
 
-struct NodeTypeMetadata
-{
-	NodeTypeId node_type_id;
-	std::vector<ResultId> valid_result_ids;
-	auto operator<=>(const NodeTypeMetadata&) const = default;
+ private:
+  std::string value_;
 };
 
-} // namespace bflow
+template <typename Tag>
+inline std::ostream& operator<<(std::ostream& os, const Id<Tag>& id) {
+  return os << id.value();
+}
 
+template <typename Tag>
+inline std::string operator+(const std::string& lhs, const Id<Tag>& rhs) {
+  return lhs + rhs.value();
+}
+template <typename Tag>
+inline std::string operator+(const Id<Tag>& lhs, const std::string& rhs) {
+  return lhs.value() + rhs;
+}
+
+struct NodeIdTag {};
+struct NodeTypeIdTag {};
+struct ResultIdTag {};
+using NodeId = Id<NodeIdTag>;
+using NodeTypeId = Id<NodeTypeIdTag>;
+using ResultId = Id<ResultIdTag>;
+
+struct NodeTypeMetadata {
+  NodeTypeId node_type_id;
+  std::vector<ResultId> valid_result_ids;
+  auto operator<=>(const NodeTypeMetadata&) const = default;
+};
+
+}  // namespace bflow
+
+namespace std {
+template <typename Tag>
+struct hash<::bflow::Id<Tag>> {
+  std::size_t operator()(const ::bflow::Id<Tag>& id) const noexcept {
+    return std::hash<std::string>{}(id.value());
+  }
+};
+}  // namespace std
 
 #endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_TYPES_H_

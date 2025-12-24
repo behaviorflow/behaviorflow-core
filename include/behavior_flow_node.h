@@ -66,7 +66,7 @@ class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
       throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
     }
     execution_function_();
-    return "";
+    return ResultId("");
   }
 
  private:

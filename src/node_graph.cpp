@@ -42,7 +42,7 @@ void NodeGraph::addNodeType(const NodeTypeDescription& node_type_description) {
 }
 
 void NodeGraph::addStartNode(const NodeDescription& node_description) {
-  if (!start_node_id_.empty()) {  // assuming existing start node id is not empty string
+  if (!start_node_id_.empty()) {
     throw std::runtime_error("Cannot add start node '" + node_description.node_id +
                              "' as a start node already exists in the graph.");
   }
@@ -51,6 +51,9 @@ void NodeGraph::addStartNode(const NodeDescription& node_description) {
 }
 
 void NodeGraph::addNode(const NodeDescription& node_description) {
+  if (node_description.node_id.empty()) {
+    throw std::runtime_error("Cannot add a node with an empty node id.");
+  }
   if (nodes_.find(node_description.node_id) != nodes_.end()) {
     throw std::runtime_error("Cannot add node '" + node_description.node_id +
                              "' as a node with that id already exists in the graph.");
@@ -98,7 +101,7 @@ NodeGraph::NodeDescription NodeGraph::getNextNode(const NodeId& from_node_id,
 }
 
 void NodeGraph::validateThatGraphIsComplete() const {
-  if (start_node_id_ == "") {
+  if (start_node_id_.empty()) {
     throw std::runtime_error("Graph validation failed: No start node defined.");
   }
   validateAllTransitionedToNodesExist();

@@ -14,8 +14,8 @@
 
 namespace bflow {
 
-inline const NodeTypeId SuccessNodeTypeId = "Success";
-inline const NodeTypeId FailureNodeTypeId = "Failure";
+inline const NodeTypeId SuccessNodeTypeId{"Success"};
+inline const NodeTypeId FailureNodeTypeId{"Failure"};
 
 // ScopeGuard utility for executing a lambda on scope exit
 class ScopeGuard {

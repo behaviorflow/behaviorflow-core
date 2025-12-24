@@ -12,9 +12,9 @@ using namespace bflow;
 
 class BehaviorFlowEngineTest : public ::testing::Test {
  protected:
-  const NodeTypeId IncrementCounterNodeTypeId = "Increment Counter";
-  const NodeTypeId ToggleFlagNodeTypeId = "Toggle Flag";
-  const NodeId TestNodeId = "test_node";
+  const NodeTypeId IncrementCounterNodeTypeId{"Increment Counter"};
+  const NodeTypeId ToggleFlagNodeTypeId{"Toggle Flag"};
+  const NodeId TestNodeId{"test_node"};
   int counter_ = 0;
   bool flag_ = false;
 
@@ -27,19 +27,20 @@ class BehaviorFlowEngineTest : public ::testing::Test {
   }
 
   std::vector<NodeGraph::NodeTypeDescription> node_type_descriptions_ = {
-      {IncrementCounterNodeTypeId, {""}},
-      {ToggleFlagNodeTypeId, {""}},
+      {IncrementCounterNodeTypeId, {ResultId("")}},
+      {ToggleFlagNodeTypeId, {ResultId("")}},
       {SuccessNodeTypeId, {}},
       {FailureNodeTypeId, {}}};
 };
 
 TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
-  NodeGraph graph = NodeGraph(node_type_descriptions_,
-                              {{"node1", IncrementCounterNodeTypeId, {{"", "node2"}}},
-                               {"node2", IncrementCounterNodeTypeId, {{"", "node3"}}},
-                               {"node3", ToggleFlagNodeTypeId, {{"", "end_success"}}},
-                               {"end_success", SuccessNodeTypeId, {}}},
-                              "node1");
+  NodeGraph graph =
+      NodeGraph(node_type_descriptions_,
+                {{NodeId("node1"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node2")}}},
+                 {NodeId("node2"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node3")}}},
+                 {NodeId("node3"), ToggleFlagNodeTypeId, {{ResultId(""), NodeId("end_success")}}},
+                 {NodeId("end_success"), SuccessNodeTypeId, {}}},
+                NodeId("node1"));
 
   BehaviorFlowResult result = bf_engine.execute(graph);
   EXPECT_EQ(result, BehaviorFlowResult::Success);
@@ -48,10 +49,11 @@ TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
 }
 
 TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
-  NodeGraph graph = NodeGraph(node_type_descriptions_,
-                              {{"node1", IncrementCounterNodeTypeId, {{"", "failure_node"}}},
-                               {"failure_node", FailureNodeTypeId, {}}},
-                              "node1");
+  NodeGraph graph = NodeGraph(
+      node_type_descriptions_,
+      {{NodeId("node1"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("failure_node")}}},
+       {NodeId("failure_node"), FailureNodeTypeId, {}}},
+      NodeId("node1"));
 
   BehaviorFlowResult result = bf_engine.execute(graph);
   EXPECT_EQ(result, BehaviorFlowResult::Failure);
@@ -59,19 +61,24 @@ TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
 }
 
 TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
-  NodeGraph graph = NodeGraph({{"UnregisteredNodeType", {""}}, {SuccessNodeTypeId, {}}},
-                              {{"node1", "UnregisteredNodeType", {{"", "end_success"}}},
-                               {"end_success", SuccessNodeTypeId, {}}},
-                              "node1");
+  NodeGraph graph =
+      NodeGraph({{NodeTypeId("UnregisteredNodeType"), {ResultId("")}}, {SuccessNodeTypeId, {}}},
+                {{NodeId("node1"),
+                  NodeTypeId("UnregisteredNodeType"),
+                  {{ResultId(""), NodeId("end_success")}}},
+                 {NodeId("end_success"), SuccessNodeTypeId, {}}},
+                NodeId("node1"));
   EXPECT_ANY_THROW(bf_engine.execute(graph));
 }
 
 TEST_F(BehaviorFlowEngineTest, NodeTypeResultMismatchThrows) {
-  NodeGraph graph =
-      NodeGraph({{IncrementCounterNodeTypeId, {"InvalidResultType"}}, {SuccessNodeTypeId, {}}},
-                {{"node1", IncrementCounterNodeTypeId, {{"InvalidResultType", "success_node"}}},
-                 {"success_node", SuccessNodeTypeId, {}}},
-                "node1");
+  NodeGraph graph = NodeGraph(
+      {{IncrementCounterNodeTypeId, {ResultId("InvalidResultType")}}, {SuccessNodeTypeId, {}}},
+      {{NodeId("node1"),
+        IncrementCounterNodeTypeId,
+        {{ResultId("InvalidResultType"), NodeId("success_node")}}},
+       {NodeId("success_node"), SuccessNodeTypeId, {}}},
+      NodeId("node1"));
   EXPECT_ANY_THROW(bf_engine.execute(graph));
 }
 

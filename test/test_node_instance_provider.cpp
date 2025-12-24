@@ -12,8 +12,8 @@ class NodeInstanceProviderTest : public ::testing::Test {
   void SetUp() override {
     NodeRegistry registry;
     flag_ = false;
-    registry.registerSimpleNodeType("DummyNode", []() {});
-    registry.registerSimpleNodeType("SetFlagTrue", [this]() { flag_ = true; });
+    registry.registerSimpleNodeType(NodeTypeId("DummyNode"), []() {});
+    registry.registerSimpleNodeType(NodeTypeId("SetFlagTrue"), [this]() { flag_ = true; });
     provider = std::make_unique<NodeInstanceProvider>(std::move(registry));
   }
 
@@ -22,20 +22,26 @@ class NodeInstanceProviderTest : public ::testing::Test {
 };
 
 TEST_F(NodeInstanceProviderTest, SameNodeIdReturnsSameInstance) {
-  BehaviorFlowNodeBase& instance1 = provider->getNodeInstance("node1", "DummyNode");
-  BehaviorFlowNodeBase& instance2 = provider->getNodeInstance("node1", "DummyNode");
+  BehaviorFlowNodeBase& instance1 =
+      provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
+  BehaviorFlowNodeBase& instance2 =
+      provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
   EXPECT_EQ(&instance1, &instance2);
 }
 
 TEST_F(NodeInstanceProviderTest, DifferentNodeIdsReturnDifferentInstances) {
-  BehaviorFlowNodeBase& instance1 = provider->getNodeInstance("node1", "DummyNode");
-  BehaviorFlowNodeBase& instance2 = provider->getNodeInstance("node2", "DummyNode");
+  BehaviorFlowNodeBase& instance1 =
+      provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
+  BehaviorFlowNodeBase& instance2 =
+      provider->getNodeInstance(NodeId("node2"), NodeTypeId("DummyNode"));
   EXPECT_NE(&instance1, &instance2);
 }
 
 TEST_F(NodeInstanceProviderTest, DifferentNodeTypesReturnDifferentInstances) {
-  BehaviorFlowNodeBase& instance1 = provider->getNodeInstance("node1", "DummyNode");
-  BehaviorFlowNodeBase& instance2 = provider->getNodeInstance("node2", "SetFlagTrue");
+  BehaviorFlowNodeBase& instance1 =
+      provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
+  BehaviorFlowNodeBase& instance2 =
+      provider->getNodeInstance(NodeId("node2"), NodeTypeId("SetFlagTrue"));
   EXPECT_NE(&instance1, &instance2);
   instance1.execute();
   EXPECT_FALSE(flag_);
@@ -44,24 +50,26 @@ TEST_F(NodeInstanceProviderTest, DifferentNodeTypesReturnDifferentInstances) {
 }
 
 TEST_F(NodeInstanceProviderTest, RetrievesMetadataCorrectly) {
-  std::optional<NodeTypeMetadata> dummy_metadata = provider->getNodeTypeMetadata("DummyNode");
-  std::optional<NodeTypeMetadata> set_flag_metadata = provider->getNodeTypeMetadata("SetFlagTrue");
+  std::optional<NodeTypeMetadata> dummy_metadata =
+      provider->getNodeTypeMetadata(NodeTypeId("DummyNode"));
+  std::optional<NodeTypeMetadata> set_flag_metadata =
+      provider->getNodeTypeMetadata(NodeTypeId("SetFlagTrue"));
   ASSERT_TRUE(dummy_metadata.has_value());
   ASSERT_TRUE(set_flag_metadata.has_value());
-  EXPECT_EQ(dummy_metadata->node_type_id, "DummyNode");
-  EXPECT_EQ(set_flag_metadata->node_type_id, "SetFlagTrue");
+  EXPECT_EQ(dummy_metadata->node_type_id, NodeTypeId("DummyNode"));
+  EXPECT_EQ(set_flag_metadata->node_type_id, NodeTypeId("SetFlagTrue"));
 }
 
 TEST_F(NodeInstanceProviderTest, ThrowsOnSameNodeIdDifferentTypes) {
-  provider->getNodeInstance("node1", "DummyNode");
-  EXPECT_ANY_THROW(provider->getNodeInstance("node1", "SetFlagTrue"));
+  provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
+  EXPECT_ANY_THROW(provider->getNodeInstance(NodeId("node1"), NodeTypeId("SetFlagTrue")));
 }
 
 TEST_F(NodeInstanceProviderTest, ThrowsOnInvalidNodeType) {
-  EXPECT_ANY_THROW(provider->getNodeInstance("node1", "NonExistentNodeType"));
+  EXPECT_ANY_THROW(provider->getNodeInstance(NodeId("node1"), NodeTypeId("NonExistentNodeType")));
 }
 
 TEST_F(NodeInstanceProviderTest, ThrowsOnTypeMismatch) {
-  provider->getNodeInstance("node1", "DummyNode");
-  EXPECT_ANY_THROW(provider->getNodeInstance("node1", "SetFlagTrue"));
+  provider->getNodeInstance(NodeId("node1"), NodeTypeId("DummyNode"));
+  EXPECT_ANY_THROW(provider->getNodeInstance(NodeId("node1"), NodeTypeId("SetFlagTrue")));
 }

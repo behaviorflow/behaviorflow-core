@@ -11,19 +11,19 @@ using namespace bflow;
 class NodeGraphTest : public ::testing::Test {
  protected:
   NodeGraph bf_graph;
-  const NodeId StartNodeId = "start";
-  const NodeId NextNodeId1 = "next1";
-  const NodeId NextNodeId2 = "next2";
-  const NodeId FailEndNodeId = "fail_end";
-  const NodeId SuccessEndNodeId = "success_end";
-  const NodeTypeId TestTaskNodeType = "task";
-  const NodeTypeId TestConditionNodeType = "condition";
-  const NodeTypeId SuccessNodeType = "success";
-  const NodeTypeId FailureNodeType = "failure";
-  const ResultId SuccessResultId = "Success";
-  const ResultId FailureResultId = "Failure";
-  const ResultId TrueResultId = "True";
-  const ResultId FalseResultId = "False";
+  const NodeId StartNodeId{"start"};
+  const NodeId NextNodeId1{"next1"};
+  const NodeId NextNodeId2{"next2"};
+  const NodeId FailEndNodeId{"fail_end"};
+  const NodeId SuccessEndNodeId{"success_end"};
+  const NodeTypeId TestTaskNodeType{"task"};
+  const NodeTypeId TestConditionNodeType{"condition"};
+  const NodeTypeId SuccessNodeType{"success"};
+  const NodeTypeId FailureNodeType{"failure"};
+  const ResultId SuccessResultId{"Success"};
+  const ResultId FailureResultId{"Failure"};
+  const ResultId TrueResultId{"True"};
+  const ResultId FalseResultId{"False"};
   const NodeGraph::NodeDescription StartNode = {StartNodeId,
                                                 TestConditionNodeType,
                                                 {
@@ -90,7 +90,7 @@ TEST_F(NodeGraphTest, GetFromNonExistentNode) {
   addNodeTypesToGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
-  EXPECT_ANY_THROW(bf_graph.getNextNode("nonexistent", SuccessResultId));
+  EXPECT_ANY_THROW(bf_graph.getNextNode(NodeId("nonexistent"), SuccessResultId));
 }
 
 TEST_F(NodeGraphTest, NonExistentTransition) {
@@ -98,7 +98,7 @@ TEST_F(NodeGraphTest, NonExistentTransition) {
   addNodeTypesToGraph();
   bf_graph.addStartNode(StartNode);
   bf_graph.addNode(NextNode1);
-  EXPECT_ANY_THROW(bf_graph.getNextNode(StartNode.node_id, "nonexistent"));
+  EXPECT_ANY_THROW(bf_graph.getNextNode(StartNode.node_id, ResultId("nonexistent")));
 }
 
 TEST_F(NodeGraphTest, DestinationNodeNotRegistered) {
@@ -162,7 +162,7 @@ TEST_F(NodeGraphTest, InvalidGraphMissingStartNode) {
 }
 
 TEST_F(NodeGraphTest, InvalidGraphWithUnreachableNode) {
-  const NodeGraph::NodeDescription UnreachableNode = {"OrphanNode",
+  const NodeGraph::NodeDescription UnreachableNode = {NodeId("OrphanNode"),
                                                       TestTaskNodeType,
                                                       {
                                                           {SuccessResultId, SuccessEndNodeId},
@@ -180,7 +180,7 @@ TEST_F(NodeGraphTest, InvalidGraphWithUnreachableNode) {
 }
 
 TEST_F(NodeGraphTest, GraphWithCircularConnections) {
-  const NodeId NextNodeId3 = "next3";
+  const NodeId NextNodeId3{"next3"};
   const NodeGraph::NodeDescription CircularNextNode2 = {NextNodeId2,
                                                         TestTaskNodeType,
                                                         {
@@ -238,7 +238,7 @@ TEST_F(NodeGraphTest, ValidGraphWithSingleNodeNoTransitions) {
 TEST_F(NodeGraphTest, AddNodeWithUnregisteredNodeType) {
   bf_graph = NodeGraph();
   addNodeTypesToGraph();
-  EXPECT_ANY_THROW(bf_graph.addNode({NextNodeId1, "unregistered_type", {}}));
+  EXPECT_ANY_THROW(bf_graph.addNode({NextNodeId1, NodeTypeId("unregistered_type"), {}}));
 }
 
 TEST_F(NodeGraphTest, AddNodeWithTransitionResultIdThatDoesntMatchNodeType) {
@@ -247,7 +247,7 @@ TEST_F(NodeGraphTest, AddNodeWithTransitionResultIdThatDoesntMatchNodeType) {
   EXPECT_ANY_THROW(bf_graph.addNode({NextNodeId1,
                                      TestTaskNodeType,
                                      {
-                                         {"InvalidResultId", NextNodeId2},
+                                         {ResultId("InvalidResultId"), NextNodeId2},
                                      }}));
 }
 

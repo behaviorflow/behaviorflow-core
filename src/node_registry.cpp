@@ -19,7 +19,7 @@ void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
   node_factory_->registerNodeType<SimpleBehaviorFlowNode>(node_type_id, execution_function);
   registerMetadata(NodeTypeMetadata{
       .node_type_id = node_type_id,
-      .valid_result_ids = {""},
+      .valid_result_ids = {ResultId("")},
   });
 };
 

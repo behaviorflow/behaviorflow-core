@@ -16,7 +16,7 @@ namespace bflow {
 
 class NodeFactory {
  public:
-  using NodeConstructor = std::function<std::unique_ptr<BehaviorFlowNodeBase>(std::string)>;
+  using NodeConstructor = std::function<std::unique_ptr<BehaviorFlowNodeBase>(NodeTypeId)>;
 
   NodeFactory() = default;
 
@@ -31,7 +31,7 @@ class NodeFactory {
     if (node_type_constr_map_.find(node_type_id) != node_type_constr_map_.end()) {
       throw std::runtime_error("A node type with id '" + node_type_id + "' is already registered.");
     }
-    node_type_constr_map_[node_type_id] = [=](std::string node_type_id) mutable {
+    node_type_constr_map_[node_type_id] = [=](NodeTypeId node_type_id) mutable {
       auto node = std::make_unique<T>(std::forward<Args>(node_constructor_args)...);
       // node->init(node_instance_name);
       return std::move(node);
