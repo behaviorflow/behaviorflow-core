@@ -6,9 +6,11 @@
 #include "node_graph.h"
 #include "node_registry.h"
 #include "standard_node_library.h"
+#include "testing_utils.h"
 #include "utils/behavior_flow_types.h"
 
 using namespace bflow;
+using namespace bflow::test;
 
 class BehaviorFlowEngineTest : public ::testing::Test {
  protected:
@@ -80,6 +82,53 @@ TEST_F(BehaviorFlowEngineTest, NodeTypeResultMismatchThrows) {
        {NodeId("success_node"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
   EXPECT_ANY_THROW(bf_engine.execute(graph));
+}
+
+TEST_F(BehaviorFlowEngineTest, ExecuteGraphFromFile) {
+  std::string graph_json = R"json(
+{
+  "node_types": [
+    {
+      "node_type_id": "Increment Counter",
+      "result_ids": [""]
+    },
+    {
+      "node_type_id": "Toggle Flag",
+      "result_ids": [""]
+    },
+    {
+      "node_type_id": "Success",
+      "result_ids": []
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "node1",
+      "node_type": "Increment Counter",
+      "transitions": {
+        "": "node2"
+      }
+    },
+    {
+      "node_id": "node2",
+      "node_type": "Toggle Flag",
+      "transitions": {
+        "": "end_success"
+      }
+    },
+    {
+      "node_id": "end_success",
+      "node_type": "Success",
+      "transitions": {}
+    }
+  ],
+  "start_node_id": "node1"
+})json";
+  ScopedTempFile temp_file(graph_json, ".json");
+  BehaviorFlowResult result = bf_engine.execute(temp_file.path());
+  EXPECT_EQ(result, BehaviorFlowResult::Success);
+  EXPECT_EQ(counter_, 1);
+  EXPECT_TRUE(flag_);
 }
 
 // Result type mismatch
