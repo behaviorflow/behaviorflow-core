@@ -73,7 +73,7 @@ TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
   EXPECT_ANY_THROW(bf_engine.execute(graph));
 }
 
-TEST_F(BehaviorFlowEngineTest, NodeTypeResultMismatchThrows) {
+TEST_F(BehaviorFlowEngineTest, ResultIdMismatchBetweenGraphAndRegisteredThrows) {
   NodeGraph graph = NodeGraph(
       {{IncrementCounterNodeTypeId, {ResultId("InvalidResultType")}}, {SuccessNodeTypeId, {}}},
       {{NodeId("node1"),

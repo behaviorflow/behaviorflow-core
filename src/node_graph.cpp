@@ -71,8 +71,8 @@ void NodeGraph::addNode(const NodeDescription& node_description) {
                                "' because its transition result ids (" +
                                joinStrings(transition_result_ids, ", ") +
                                ") do not match "
-                               "the result ids for its node type '" +
-                               node_description.node_type + "' (" +
+                               "the result ids for its node type, '" +
+                               node_description.node_type + "', (" +
                                joinStrings(node_type_description.result_ids, ", ") + ").");
     }
   }
