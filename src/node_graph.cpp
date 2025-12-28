@@ -36,7 +36,7 @@ NodeGraph::NodeGraph(const std::vector<NodeTypeDescription>& node_types,
 void NodeGraph::addNodeType(const NodeTypeDescription& node_type_description) {
   if (node_types_.find(node_type_description.node_type_id) != node_types_.end()) {
     throw std::runtime_error("Cannot add node type '" + node_type_description.node_type_id +
-                             "' as a node type with that id already exists in the graph.");
+                             "' because a node type with that id already exists in the graph.");
   }
   node_types_.insert({node_type_description.node_type_id, node_type_description});
 }
@@ -44,7 +44,7 @@ void NodeGraph::addNodeType(const NodeTypeDescription& node_type_description) {
 void NodeGraph::addStartNode(const NodeDescription& node_description) {
   if (!start_node_id_.empty()) {
     throw std::runtime_error("Cannot add start node '" + node_description.node_id +
-                             "' as a start node already exists in the graph.");
+                             "' because a start node already exists in the graph.");
   }
   addNode(node_description);
   start_node_id_ = node_description.node_id;
@@ -56,19 +56,19 @@ void NodeGraph::addNode(const NodeDescription& node_description) {
   }
   if (nodes_.find(node_description.node_id) != nodes_.end()) {
     throw std::runtime_error("Cannot add node '" + node_description.node_id +
-                             "' as a node with that id already exists in the graph.");
+                             "' because a node with that id already exists in the graph.");
   }
   auto node_type_description_it = node_types_.find(node_description.node_type);
   if (node_type_description_it == node_types_.end()) {
     throw std::runtime_error("Cannot add node '" + node_description.node_id + "' of type '" +
                              node_description.node_type +
-                             "' as that node type has not been defined for this graph.");
+                             "' because that node type has not been defined for this graph.");
   } else {
     const NodeTypeDescription& node_type_description = node_type_description_it->second;
     auto transition_result_ids = node_description.transitions | std::views::keys;
     if (!std::ranges::is_permutation(transition_result_ids, node_type_description.result_ids)) {
       throw std::runtime_error("Cannot add node '" + node_description.node_id +
-                               "' as its transition result ids (" +
+                               "' because its transition result ids (" +
                                joinStrings(transition_result_ids, ", ") +
                                ") do not match "
                                "the result ids for its node type '" +
@@ -84,19 +84,17 @@ NodeGraph::NodeDescription NodeGraph::getStartNode() const { return nodes_.at(st
 NodeGraph::NodeDescription NodeGraph::getNextNode(const NodeId& from_node_id,
                                                   const ResultId& result_id) const {
   validateNodeExists(from_node_id, "Cannot get the next node from '" + from_node_id +
-                                       "' as it does not exist in the graph.");
+                                       "' because it does not exist in the graph.");
   validateTransitionExists(from_node_id, result_id,
                            "Cannot get the next node from '" + from_node_id + "' for transition '" +
                                result_id +
-                               "' as "
-                               "the transition does not exist for that node.");
+                               "' because the transition does not exist for that node.");
   NodeDescription from_node = nodes_.at(from_node_id);
   NodeId next_node_id = from_node.transitions.at(result_id);
   validateNodeExists(next_node_id, "Cannot get the next node from '" + from_node_id +
                                        "' for transition '" + result_id +
-                                       "' as the "
-                                       "next node '" +
-                                       next_node_id + "' does not exist in the graph.");
+                                       "' because the next node '" + next_node_id +
+                                       "' does not exist in the graph.");
   return nodes_.at(next_node_id);
 }
 
