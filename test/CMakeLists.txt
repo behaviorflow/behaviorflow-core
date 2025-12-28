@@ -7,7 +7,7 @@ set(TEST_SOURCES
     test_behavior_flow_engine.cpp
     test_testing_utils.cpp
     # test_behavior_flow_node.cpp
-    behavior_flow_utils_test.cpp
+    test_behavior_flow_utils.cpp
     src/nodes_for_testing.cpp
 )
 
