@@ -5,8 +5,6 @@
 
 #include <filesystem>
 
-#include "graph_file_parser_interface.h"
-#include "graph_file_parser_json.h"
 #include "node_graph.h"
 #include "node_instance_provider.h"
 #include "node_registry.h"
@@ -16,23 +14,27 @@ namespace bflow {
 enum class BehaviorFlowResult {
   Success,
   Failure,
+  Running,
 };
 
 class BehaviorFlowEngine {
  public:
-  BehaviorFlowEngine() = default;
-  explicit BehaviorFlowEngine(NodeRegistry&& registry);
+  BehaviorFlowEngine() = delete;
+  BehaviorFlowEngine(NodeRegistry&& registry, NodeGraph&& graph);
+  BehaviorFlowEngine(NodeRegistry&& registry,
+                                         const std::filesystem::path& graph_json_path);
 
-  BehaviorFlowResult execute(const std::filesystem::path& graph_path);
-  BehaviorFlowResult execute(const NodeGraph& graph);
-  void setGraphFileParser(std::unique_ptr<GraphFileParserInterface> parser);
+  BehaviorFlowResult execute(std::chrono::milliseconds tick_rate);
+  BehaviorFlowResult tick();
+  void reset();
 
  private:
   bool isTerminalNodeType(const NodeGraph::NodeDescription& node_description) const;
-  void validateThatGraphMatchesRegisteredNodeTypes(const NodeGraph& graph) const;
-  void instantiateGraphNodes(const NodeGraph& graph);
+  void validateThatGraphMatchesRegisteredNodeTypes() const;
+  void instantiateGraphNodes();
   NodeInstanceProvider node_instance_provider_;
-  std::unique_ptr<GraphFileParserInterface> graph_file_parser_;
+  NodeGraph graph_;
+  NodeGraph::NodeDescription current_node_;
 };
 
 }  // namespace bflow

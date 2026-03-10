@@ -7,7 +7,7 @@ namespace bflow {
 std::unique_ptr<BehaviorFlowNodeBase> NodeFactory::createNodeInstance(NodeTypeId node_type_id) {
   auto it = node_type_constr_map_.find(node_type_id);
   if (it != node_type_constr_map_.end()) {
-    return it->second(node_type_id);
+    return it->second();
   }
   return nullptr;
 }

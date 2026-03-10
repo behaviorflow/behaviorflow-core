@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "graph_file_parser_json.h"
+#include "json_graph_parser.h"
 #include "node_graph.h"
 #include "testing_utils.h"
 #include "utils/behavior_flow_types.h"
@@ -99,17 +99,17 @@ void ExpectValidGraphStructure(const NodeGraph& graph) {
 }
 }  // namespace
 
-TEST(GraphFileParserJson, ValidGraph) {
-  NodeGraph graph = GraphFileParserJson().parseGraphString(TestValidGraphJson);
+TEST(JsonGraphParser, ValidGraph) {
+  NodeGraph graph = jsonStringToNodeGraph(TestValidGraphJson);
   ExpectValidGraphStructure(graph);
 }
 
-TEST(GraphFileParserJson, EmptyString) {
+TEST(JsonGraphParser, EmptyString) {
   std::string graph_json = "";
-  EXPECT_ANY_THROW(GraphFileParserJson().parseGraphString(graph_json));
+  EXPECT_ANY_THROW(jsonStringToNodeGraph(graph_json));
 }
 
-TEST(GraphFileParserJson, JsonMissingClosingBrace) {
+TEST(JsonGraphParser, JsonMissingClosingBrace) {
   std::string graph_json = R"json(
 {
   "node_types": [
@@ -130,10 +130,10 @@ TEST(GraphFileParserJson, JsonMissingClosingBrace) {
   ],
   "start_node_id": "start"
 )json";  // Missing closing brace
-  EXPECT_ANY_THROW(GraphFileParserJson().parseGraphString(graph_json));
+  EXPECT_ANY_THROW(jsonStringToNodeGraph(graph_json));
 }
 
-TEST(GraphFileParserJson, MissingFields) {
+TEST(JsonGraphParser, MissingFields) {
   std::string graph_json = R"json(
 {
   "node_types": [
@@ -149,10 +149,10 @@ TEST(GraphFileParserJson, MissingFields) {
   ],
   "start_node_id": "start"
 })json";  // Missing result_ids and transitions
-  EXPECT_ANY_THROW(GraphFileParserJson().parseGraphString(graph_json));
+  EXPECT_ANY_THROW(jsonStringToNodeGraph(graph_json));
 }
 
-TEST(GraphFileParserJson, NoStartNode) {
+TEST(JsonGraphParser, NoStartNode) {
   std::string graph_json = R"json(
 {
   "node_types": [
@@ -172,16 +172,16 @@ TEST(GraphFileParserJson, NoStartNode) {
     }
   ]
 })json";  // Missing start_node_id
-  EXPECT_ANY_THROW(GraphFileParserJson().parseGraphString(graph_json));
+  EXPECT_ANY_THROW(jsonStringToNodeGraph(graph_json));
 }
 
-TEST(GraphFileParserJson, EmptyFile) {
+TEST(JsonGraphParser, EmptyFile) {
   ScopedTempFile temp_file("", ".json");
-  EXPECT_ANY_THROW(GraphFileParserJson().parseGraphFile(temp_file.path()));
+  EXPECT_ANY_THROW(jsonFileToNodeGraph(temp_file.path()));
 }
 
-TEST(GraphFileParserJson, ValidFile) {
+TEST(JsonGraphParser, ValidFile) {
   ScopedTempFile temp_file(TestValidGraphJson, ".json");
-  NodeGraph graph = GraphFileParserJson().parseGraphFile(temp_file.path());
+  NodeGraph graph = jsonFileToNodeGraph(temp_file.path());
   ExpectValidGraphStructure(graph);
 }

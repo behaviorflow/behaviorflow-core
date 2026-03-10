@@ -6,10 +6,8 @@ set(BF_LIBRARY ${PROJECT_NAME})
 
 add_library(${BF_LIBRARY}
     src/node_graph.cpp
-    src/graph_file_parser_interface.cpp
-    src/graph_file_parser_json.cpp
+    src/json_graph_parser.cpp
     src/behavior_flow_engine.cpp
-    src/behavior_flow_node.cpp
     src/node_factory.cpp
     src/node_registry.cpp
     src/node_instance_provider.cpp

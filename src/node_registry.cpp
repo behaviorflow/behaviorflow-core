@@ -2,9 +2,10 @@
 
 #include "node_registry.h"
 
+#include <optional>
+
 #include "standard_node_library.h"
 #include "utils/behavior_flow_utils.h"
-#include <optional>
 
 namespace bflow {
 
@@ -16,7 +17,11 @@ NodeRegistry::NodeRegistry() : node_factory_(std::make_unique<NodeFactory>()) {
 
 void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
                                           std::function<void()> execution_function) {
-  node_factory_->registerNodeType<SimpleBehaviorFlowNode>(node_type_id, execution_function);
+  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id,
+                                                    [execution_function]() -> ReturnType {
+                                                      execution_function();
+                                                      return ReturnType(ResultId(""));
+                                                    });
   registerMetadata(NodeTypeMetadata{
       .node_type_id = node_type_id,
       .valid_result_ids = {ResultId("")},
@@ -24,7 +29,10 @@ void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
 };
 
 void NodeRegistry::registerTerminalNodeType(const NodeTypeId& node_type_id) {
-  node_factory_->registerNodeType<SimpleBehaviorFlowNode>(node_type_id, []() -> void {});
+  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id, [node_type_id]() -> ReturnType {
+    throw std::runtime_error("Terminal node " + node_type_id.value() +
+                             " was executed, which should not have happened!");
+  });
   registerMetadata(NodeTypeMetadata{
       .node_type_id = node_type_id,
       .valid_result_ids = {},
@@ -39,8 +47,8 @@ void NodeRegistry::registerMetadata(const NodeTypeMetadata& metadata) {
   node_type_metadata_[metadata.node_type_id] = metadata;
 }
 
-std::unique_ptr<BehaviorFlowNodeBase> NodeRegistryAccessor::instantiateNode(const NodeRegistry& registry,
-                                                           const NodeTypeId& node_type_id) {
+std::unique_ptr<BehaviorFlowNodeBase> NodeRegistryAccessor::instantiateNode(
+    const NodeRegistry& registry, const NodeTypeId& node_type_id) {
   std::unique_ptr<BehaviorFlowNodeBase> node_instance =
       registry.node_factory_->createNodeInstance(node_type_id);
   return std::move(node_instance);

@@ -47,6 +47,20 @@ using NodeId = Id<NodeIdTag>;
 using NodeTypeId = Id<NodeTypeIdTag>;
 using ResultId = Id<ResultIdTag>;
 
+class ReturnType {
+  public:
+    static ReturnType StillRunning() { return ReturnType(StillRunningTag{}); }
+    explicit ReturnType(ResultId result_id) : result_id_(result_id) {}
+    bool still_running() const { return still_running_; }
+    const ResultId& result_id() const { return result_id_; }
+  
+  private:
+    struct StillRunningTag {};
+    explicit ReturnType(StillRunningTag) : still_running_(true) {}
+    ResultId result_id_;
+    bool still_running_{false};
+};
+
 struct NodeTypeMetadata {
   NodeTypeId node_type_id;
   std::vector<ResultId> valid_result_ids;

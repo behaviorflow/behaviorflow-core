@@ -15,9 +15,18 @@ namespace bflow {
 class NodeRegistry {
  public:
   NodeRegistry();
+  // todo: copy/move constructors?
 
   void registerSimpleNodeType(const NodeTypeId& node_type_id,
                               std::function<void()> execution_function);
+
+  template <typename ReturnT, typename ReturnTInterpreter>
+  void registerNodeType(const std::string& node_type_id,
+                        std::function<ReturnT()> execution_function);
+
+  template <typename NodeT, typename... Args>
+  void registerNodeType(const NodeTypeId& node_type_id, std::vector<ResultId> valid_result_ids,
+                        Args&&... args);
 
  private:
   void registerMetadata(const NodeTypeMetadata& metadata);
@@ -29,7 +38,31 @@ class NodeRegistry {
   friend class NodeRegistryAccessor;
 };
 
-// Accessor class for retrieving stuff from NodeRegistry, to keep NodeRegistry's API user/register-facing
+template <typename NodeT, typename... Args>
+void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
+                                    std::vector<ResultId> valid_result_ids, Args&&... args) {
+  node_factory_->registerNodeType<NodeT>(node_type_id, std::forward<Args>(args)...);
+  registerMetadata(NodeTypeMetadata{
+      .node_type_id = node_type_id,
+      .valid_result_ids = std::move(valid_result_ids),
+  });
+}
+
+template <typename ReturnT, typename ReturnTInterpreter>
+void NodeRegistry::registerNodeType(const std::string& node_type_id,
+                      std::function<ReturnT()> execution_function) {
+  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id, [execution_function]() -> ReturnType {
+    ReturnT rt = execution_function();
+    return ReturnTInterpreter::toResultType(rt);
+  });
+  registerMetadata(NodeTypeMetadata{
+    .node_type_id = node_type_id,
+    .valid_result_ids = std::move(ReturnTInterpreter::validResultIds()),
+  });
+}
+
+// Accessor class for retrieving stuff from NodeRegistry, to keep NodeRegistry's API
+// user/register-facing
 class NodeRegistryAccessor {
  public:
   static std::unique_ptr<BehaviorFlowNodeBase> instantiateNode(const NodeRegistry& registry,

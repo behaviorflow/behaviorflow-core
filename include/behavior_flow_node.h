@@ -32,7 +32,7 @@ class BehaviorFlowNodeBase {
   // No need to init... static and map
   // void init(const std::string& node_instance_name, );
   // ReturnType run();
-  virtual ResultId execute() = 0;
+  virtual ReturnType execute() = 0;
 
   // virtual NodeTypeAttributes getNodeTypeAttributes() = 0;
 
@@ -50,28 +50,43 @@ class BehaviorFlowNodeBase {
   // std::string node_description_;
 };
 
+class BehaviorFlowNode : public BehaviorFlowNodeBase {
+ public:
+  BehaviorFlowNode() = delete;
+  BehaviorFlowNode(std::function<ReturnType()> execution_function)
+      : execution_function_(execution_function) {}
+
+  ReturnType execute() override {
+    ReturnType result = execution_function_();
+    return result;
+  }
+
+ private:
+  std::function<ReturnType()> execution_function_;
+};
+
 // <ResultT>
 // class BehaviorFlowNode : public BehaviorFlowNodeBase {
 
 // }
 
-class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
- public:
-  SimpleBehaviorFlowNode() = delete;
-  SimpleBehaviorFlowNode(std::function<void()> execution_function)
-      : execution_function_(execution_function) {}
+// class SimpleBehaviorFlowNode : public BehaviorFlowNodeBase {
+//  public:
+//   SimpleBehaviorFlowNode() = delete;
+//   explicit SimpleBehaviorFlowNode(std::function<void()> execution_function)
+//       : execution_function_(execution_function) {}
 
-  ResultId execute() override {
-    if (!execution_function_) {
-      throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
-    }
-    execution_function_();
-    return ResultId("");
-  }
+//   ReturnType execute() override {
+//     if (!execution_function_) {
+//       throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
+//     }
+//     execution_function_();
+//     return ReturnType(ResultId(""));
+//   }
 
- private:
-  std::function<void()> execution_function_;
-};
+//  private:
+//   std::function<void()> execution_function_;
+// };
 
 // // REVIEW: is this class template really necessary?
 // // Or does it just add unneccesary complexity?

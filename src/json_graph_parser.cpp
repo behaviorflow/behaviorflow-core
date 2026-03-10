@@ -1,6 +1,6 @@
-#include "graph_file_parser_json.h"
-
+#include "json_graph_parser.h"
 #include "json.hpp"
+#include <fstream>
 
 namespace bflow {
 
@@ -14,7 +14,18 @@ static void validateRequiredFields(const nlohmann::json& json,
   }
 }
 
-NodeGraph GraphFileParserJson::parseGraphString(const std::string& graph) {
+NodeGraph jsonFileToNodeGraph(
+    const std::filesystem::path& graph_file_path) {
+  std::ifstream file(graph_file_path, std::ios::binary);
+  if (!file.is_open()) {
+    throw std::runtime_error("Could not open file: " + graph_file_path.string());
+  }
+  std::string graph_string((std::istreambuf_iterator<char>(file)),
+                           std::istreambuf_iterator<char>());
+  return jsonStringToNodeGraph(graph_string);
+}
+
+NodeGraph jsonStringToNodeGraph(const std::string& graph) {
   try {
     nlohmann::json json = nlohmann::json::parse(graph);
     validateRequiredFields(json, {"node_types", "nodes", "start_node_id"}, "root object");

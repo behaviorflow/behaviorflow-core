@@ -18,6 +18,7 @@ class NodeInstanceProvider {
  public:
   explicit NodeInstanceProvider(NodeRegistry&& registry);
   NodeInstanceProvider() = default;
+  // todo: copy/move constructors?
 
   BehaviorFlowNodeBase& getNodeInstance(const NodeId& node_instance_id,
                                           const NodeTypeId& node_type_id);
