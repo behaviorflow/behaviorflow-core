@@ -16,8 +16,6 @@ struct Id {
  public:
   explicit Id(const std::string& v) : value_(v) {}
   Id() = default;
-  bool operator==(const Id& other) const { return value_ == other.value(); }
-  bool operator!=(const Id& other) const { return value_ != other.value(); }
   auto operator<=>(const Id&) const = default;
   bool empty() const { return value_.empty(); }
   const std::string& value() const { return value_; }
@@ -48,17 +46,19 @@ using NodeTypeId = Id<NodeTypeIdTag>;
 using ResultId = Id<ResultIdTag>;
 
 class ReturnType {
-  public:
-    static ReturnType StillRunning() { return ReturnType(StillRunningTag{}); }
-    explicit ReturnType(ResultId result_id) : result_id_(result_id) {}
-    bool still_running() const { return still_running_; }
-    const ResultId& result_id() const { return result_id_; }
-  
-  private:
-    struct StillRunningTag {};
-    explicit ReturnType(StillRunningTag) : still_running_(true) {}
-    ResultId result_id_;
-    bool still_running_{false};
+ public:
+  static ReturnType StillRunning() { return ReturnType(StillRunningTag{}); }
+  explicit ReturnType(ResultId result_id) : result_id_(result_id) {}
+  explicit ReturnType(std::string result_id_str) : result_id_(ResultId(result_id_str)) {}
+  auto operator<=>(const ReturnType&) const = default;
+  bool still_running() const { return still_running_; }
+  const ResultId& result_id() const { return result_id_; }
+
+ private:
+  struct StillRunningTag {};
+  explicit ReturnType(StillRunningTag) : still_running_(true) {}
+  ResultId result_id_;
+  bool still_running_{false};
 };
 
 struct NodeTypeMetadata {

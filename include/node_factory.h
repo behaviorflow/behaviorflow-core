@@ -11,6 +11,7 @@
 
 #include "behavior_flow_node.h"
 #include "utils/behavior_flow_types.h"
+#include "utils/concepts.h"
 
 namespace bflow {
 
@@ -21,14 +22,8 @@ class NodeFactory {
   NodeFactory() = default;
   // todo: copy/move constructors?
 
-  template <typename T, typename... Args>
+  template <BehaviorFlowNodeType T, typename... Args>
   void registerNodeType(const NodeTypeId& node_type_id, Args&&... node_constructor_args) {
-    static_assert(std::is_base_of<BehaviorFlowNodeBase, T>::value,
-                  "Registered node type classes must derive from BehaviorFlowNodeBase");
-    // todo: use c++20 concepts, and pull ths logic out. Just pass in the name
-    // T temp_node = T(std::forward<Args>(node_constructor_args)...);
-    // std::string node_type_id = temp_node.getTypeName() + " " + node_type_suffix;
-
     if (node_type_constr_map_.find(node_type_id) != node_type_constr_map_.end()) {
       throw std::runtime_error("A node type with id '" + node_type_id + "' is already registered.");
     }
@@ -38,7 +33,7 @@ class NodeFactory {
     };
   }
 
-  std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(NodeTypeId node_type_id);
+  std::unique_ptr<BehaviorFlowNodeBase> createNodeInstance(const NodeTypeId& node_type_id);
 
  private:
   std::unordered_map<NodeTypeId, NodeConstructor> node_type_constr_map_;

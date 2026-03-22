@@ -28,20 +28,20 @@ class BehaviorFlowEngineTest : public ::testing::Test {
   }
 
   std::vector<NodeGraph::NodeTypeDescription> node_type_descriptions_ = {
-      {IncrementCounterNodeTypeId, {ResultId("")}},
-      {ToggleFlagNodeTypeId, {ResultId("")}},
+      {IncrementCounterNodeTypeId, {SimpleNodeResultId}},
+      {ToggleFlagNodeTypeId, {SimpleNodeResultId}},
       {SuccessNodeTypeId, {}},
       {FailureNodeTypeId, {}}};
 };
 
 TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
-  NodeGraph graph =
-      NodeGraph(node_type_descriptions_,
-                {{NodeId("node1"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node2")}}},
-                 {NodeId("node2"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node3")}}},
-                 {NodeId("node3"), ToggleFlagNodeTypeId, {{ResultId(""), NodeId("end_success")}}},
-                 {NodeId("end_success"), SuccessNodeTypeId, {}}},
-                NodeId("node1"));
+  NodeGraph graph = NodeGraph(
+      node_type_descriptions_,
+      {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node2")}}},
+       {NodeId("node2"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node3")}}},
+       {NodeId("node3"), ToggleFlagNodeTypeId, {{SimpleNodeResultId, NodeId("end_success")}}},
+       {NodeId("end_success"), SuccessNodeTypeId, {}}},
+      NodeId("node1"));
   BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
   BehaviorFlowResult result = bf_engine.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Success);
@@ -50,13 +50,13 @@ TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
 }
 
 TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
-  NodeGraph graph =
-      NodeGraph(node_type_descriptions_,
-                {{NodeId("node1"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node2")}}},
-                 {NodeId("node2"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("node3")}}},
-                 {NodeId("node3"), ToggleFlagNodeTypeId, {{ResultId(""), NodeId("end_success")}}},
-                 {NodeId("end_success"), SuccessNodeTypeId, {}}},
-                NodeId("node1"));
+  NodeGraph graph = NodeGraph(
+      node_type_descriptions_,
+      {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node2")}}},
+       {NodeId("node2"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node3")}}},
+       {NodeId("node3"), ToggleFlagNodeTypeId, {{SimpleNodeResultId, NodeId("end_success")}}},
+       {NodeId("end_success"), SuccessNodeTypeId, {}}},
+      NodeId("node1"));
   BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
 
   BehaviorFlowResult result = bf_engine.tick();
@@ -83,11 +83,12 @@ TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
 // Todo: Tick graph with multi-cycle node
 
 TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
-  NodeGraph graph = NodeGraph(
-      node_type_descriptions_,
-      {{NodeId("node1"), IncrementCounterNodeTypeId, {{ResultId(""), NodeId("failure_node")}}},
-       {NodeId("failure_node"), FailureNodeTypeId, {}}},
-      NodeId("node1"));
+  NodeGraph graph = NodeGraph(node_type_descriptions_,
+                              {{NodeId("node1"),
+                                IncrementCounterNodeTypeId,
+                                {{SimpleNodeResultId, NodeId("failure_node")}}},
+                               {NodeId("failure_node"), FailureNodeTypeId, {}}},
+                              NodeId("node1"));
   BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
   BehaviorFlowResult result = bf_engine.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Failure);
@@ -95,13 +96,13 @@ TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
 }
 
 TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
-  NodeGraph graph =
-      NodeGraph({{NodeTypeId("UnregisteredNodeType"), {ResultId("")}}, {SuccessNodeTypeId, {}}},
-                {{NodeId("node1"),
-                  NodeTypeId("UnregisteredNodeType"),
-                  {{ResultId(""), NodeId("end_success")}}},
-                 {NodeId("end_success"), SuccessNodeTypeId, {}}},
-                NodeId("node1"));
+  NodeGraph graph = NodeGraph(
+      {{NodeTypeId("UnregisteredNodeType"), {SimpleNodeResultId}}, {SuccessNodeTypeId, {}}},
+      {{NodeId("node1"),
+        NodeTypeId("UnregisteredNodeType"),
+        {{SimpleNodeResultId, NodeId("end_success")}}},
+       {NodeId("end_success"), SuccessNodeTypeId, {}}},
+      NodeId("node1"));
   EXPECT_ANY_THROW(BehaviorFlowEngine(std::move(registry), std::move(graph)));
 }
 

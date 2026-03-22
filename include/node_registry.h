@@ -9,6 +9,8 @@
 #include "behavior_flow_node.h"
 #include "node_factory.h"
 #include "utils/behavior_flow_types.h"
+#include "utils/concepts.h"
+#include "utils/return_types.h"
 
 namespace bflow {
 
@@ -17,16 +19,22 @@ class NodeRegistry {
   NodeRegistry();
   // todo: copy/move constructors?
 
-  void registerSimpleNodeType(const NodeTypeId& node_type_id,
-                              std::function<void()> execution_function);
-
-  template <typename ReturnT, typename ReturnTInterpreter>
-  void registerNodeType(const std::string& node_type_id,
-                        std::function<ReturnT()> execution_function);
-
-  template <typename NodeT, typename... Args>
+  template <BehaviorFlowNodeType NodeT, typename... Args>
   void registerNodeType(const NodeTypeId& node_type_id, std::vector<ResultId> valid_result_ids,
                         Args&&... args);
+
+  template <typename ResultT, ResultTypeInterpreter<ResultT> ResultTInterpreter, typename Callable>
+    requires NodeFunction<Callable, ResultT>
+  void registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function);
+
+  void registerSimpleNodeType(const NodeTypeId& node_type_id,
+                              VoidNodeFunction auto&& execution_function);
+
+  void registerSimpleNodeType(const NodeTypeId& node_type_id,
+                              SimpleNodeFunction auto&& execution_function);
+
+  void registerDecisionNodeType(const NodeTypeId& node_type_id,
+                                BoolNodeFunction auto&& execution_function);
 
  private:
   void registerMetadata(const NodeTypeMetadata& metadata);
@@ -38,7 +46,7 @@ class NodeRegistry {
   friend class NodeRegistryAccessor;
 };
 
-template <typename NodeT, typename... Args>
+template <BehaviorFlowNodeType NodeT, typename... Args>
 void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
                                     std::vector<ResultId> valid_result_ids, Args&&... args) {
   node_factory_->registerNodeType<NodeT>(node_type_id, std::forward<Args>(args)...);
@@ -48,17 +56,42 @@ void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
   });
 }
 
-template <typename ReturnT, typename ReturnTInterpreter>
-void NodeRegistry::registerNodeType(const std::string& node_type_id,
-                      std::function<ReturnT()> execution_function) {
-  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id, [execution_function]() -> ReturnType {
-    ReturnT rt = execution_function();
-    return ReturnTInterpreter::toResultType(rt);
-  });
+template <typename ResultT, ResultTypeInterpreter<ResultT> ResultTInterpreter, typename Callable>
+  requires NodeFunction<Callable, ResultT>
+void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function) {
+  node_factory_->registerNodeType<BehaviorFlowNode>(
+      node_type_id, [fn = std::forward<Callable>(execution_function)]() -> ReturnType {
+        return ResultTInterpreter::toNodeReturnType(std::invoke(fn));
+      });
   registerMetadata(NodeTypeMetadata{
-    .node_type_id = node_type_id,
-    .valid_result_ids = std::move(ReturnTInterpreter::validResultIds()),
+      .node_type_id = node_type_id,
+      .valid_result_ids = ResultTInterpreter::validResultIds(),
   });
+}
+
+inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
+                                          VoidNodeFunction auto&& execution_function) {
+  node_factory_->registerNodeType<BehaviorFlowNode>(
+      node_type_id, [fn = std::forward<decltype(execution_function)>(execution_function)]() {
+        std::invoke(fn);
+        return ReturnType(SimpleNodeResultId);
+      });
+  registerMetadata(NodeTypeMetadata{
+      .node_type_id = node_type_id,
+      .valid_result_ids = {SimpleNodeResultId},
+  });
+}
+
+inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
+                                          SimpleNodeFunction auto&& execution_function) {
+  registerNodeType<SimpleNodeResult, SimpleResultTypeInterpreter>(
+      node_type_id, std::forward<decltype(execution_function)>(execution_function));
+}
+
+inline void NodeRegistry::registerDecisionNodeType(const NodeTypeId& node_type_id,
+                                            BoolNodeFunction auto&& execution_function) {
+  registerNodeType<bool, BoolResultTypeInterpreter>(
+      node_type_id, std::forward<decltype(execution_function)>(execution_function));
 }
 
 // Accessor class for retrieving stuff from NodeRegistry, to keep NodeRegistry's API
@@ -70,41 +103,6 @@ class NodeRegistryAccessor {
   static std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeRegistry& registry,
                                                              const NodeTypeId& node_type_id);
 };
-
-// template <typename ReturnT, typename ReturnTInterpreter>
-// void registerNodeType(
-// 	const std::string& node_type_id,
-// 	// const std::string& node_type_description,
-// 	std::function<ReturnT()> execution_function)
-// {
-
-// 	// NodeFactory::getInstance().registerNodeType(
-// 	// 	node_type_id,
-// 	// 	node_type_description,
-// 	// 	[execution_function]() {
-// 	// 		return std::make_shared<ReturnTInterpreter>(execution_function());
-// 	// 	}
-// 	// );
-// }
-
-// void registerSimpleNodeType(
-// 	const std::string& node_type_id,
-// 	void(*execution_function)())
-// {
-// 	NodeFactory::getInstance().registerNodeType<SimpleBehaviorFlowNode>(node_type_id,
-// execution_function);
-// }
-
-// template<typename Callable>
-// void registerSimpleNodeType(
-// 	const std::string& node_type_id,
-// 	Callable&& execution_function)
-// {
-// 	NodeFactory::getInstance().registerNodeType<SimpleBehaviorFlowNode>(
-// 		node_type_id,
-// 		std::forward<Callable>(execution_function)
-// 	);
-// }
 
 }  // namespace bflow
 

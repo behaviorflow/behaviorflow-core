@@ -13,20 +13,7 @@ NodeRegistry::NodeRegistry() : node_factory_(std::make_unique<NodeFactory>()) {
   register_standard_library(*this);
   registerTerminalNodeType(SuccessNodeTypeId);
   registerTerminalNodeType(FailureNodeTypeId);
-};
-
-void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
-                                          std::function<void()> execution_function) {
-  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id,
-                                                    [execution_function]() -> ReturnType {
-                                                      execution_function();
-                                                      return ReturnType(ResultId(""));
-                                                    });
-  registerMetadata(NodeTypeMetadata{
-      .node_type_id = node_type_id,
-      .valid_result_ids = {ResultId("")},
-  });
-};
+}
 
 void NodeRegistry::registerTerminalNodeType(const NodeTypeId& node_type_id) {
   node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id, [node_type_id]() -> ReturnType {
@@ -51,7 +38,7 @@ std::unique_ptr<BehaviorFlowNodeBase> NodeRegistryAccessor::instantiateNode(
     const NodeRegistry& registry, const NodeTypeId& node_type_id) {
   std::unique_ptr<BehaviorFlowNodeBase> node_instance =
       registry.node_factory_->createNodeInstance(node_type_id);
-  return std::move(node_instance);
+  return node_instance;
 }
 
 std::optional<NodeTypeMetadata> NodeRegistryAccessor::getNodeTypeMetadata(

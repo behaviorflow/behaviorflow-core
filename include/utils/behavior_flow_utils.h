@@ -3,7 +3,6 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_UTILS_H_
 
-#include <concepts>
 #include <functional>
 #include <ranges>
 #include <sstream>
@@ -36,7 +35,7 @@ concept StringRange = std::ranges::input_range<Range> &&
                         { os << value } -> std::convertible_to<std::ostream&>;
                       };
 
-                      // todo: not sure I want it inline
+// todo: not sure I want it inline
 template <StringRange Range>
 inline std::string joinStrings(Range&& strings, const std::string& delimiter = ", ",
                                bool quote_elements = true) {
