@@ -24,6 +24,10 @@ class NodeFactory {
 
   template <BehaviorFlowNodeType T, typename... Args>
   void registerNodeType(const NodeTypeId& node_type_id, Args&&... node_constructor_args) {
+    static_assert((std::is_copy_constructible_v<std::decay_t<Args>> && ...),
+                  "All node constructor arguments must be copy constructible, "
+                  "as they are copied for each node instantiation.");
+
     if (node_type_constr_map_.find(node_type_id) != node_type_constr_map_.end()) {
       throw std::runtime_error("A node type with id '" + node_type_id + "' is already registered.");
     }

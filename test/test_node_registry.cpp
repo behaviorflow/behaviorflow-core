@@ -84,13 +84,31 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctorReference) {
   };
   Functor functor;
   const NodeTypeId TypeId{"FunctorNode"};
-  registry.registerSimpleNodeType(TypeId, std::ref(functor));
+  registry.registerSimpleNodeType(TypeId, std::ref(functor)); // todo: consider whether you want to bag the ref case. It's like a shared controller. But may not be obvious. Might be better to pass a shared pointer argument. But consider this.
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
   EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
   EXPECT_EQ(functor.counter_, 1);
   EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
   EXPECT_EQ(functor.counter_, 2);
+}
+
+TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctorMove) {
+  std::shared_ptr<int> counter = std::make_shared<int>(0);
+  struct Functor {
+    Functor(std::shared_ptr<int> counter) : counter_(std::move(counter)) {}
+    void operator()() { (*counter_)++; }
+    std::shared_ptr<int> counter_;
+  };
+  Functor functor(counter);
+  const NodeTypeId TypeId{"FunctorNode"};
+  registry.registerSimpleNodeType(TypeId, std::move(functor));
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
+  EXPECT_EQ(*counter, 1);
+  EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
+  EXPECT_EQ(*counter, 2);
 }
 
 TEST_F(NodeRegistryTest, RegisterDuplicateNodeTypeThrows) {
@@ -162,6 +180,48 @@ TEST_F(NodeRegistryTest, RegisterDecisionNodeWithFunctorReference) {
   EXPECT_EQ(node->execute(), ReturnType(DecisionNodeTrueResultId));
 }
 
+TEST_F(NodeRegistryTest, RegisterDecisionNodeWithFunctorMove) {
+  struct Functor {
+    bool operator()() { return ++counter_ > NumExecutions; }
+    int counter_ = 0;
+    const int NumExecutions = 3;
+  };
+  Functor functor;
+  const NodeTypeId TypeId{"DecisionFunctorNode"};
+  registry.registerDecisionNodeType(TypeId, std::move(functor));
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  EXPECT_EQ(node->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->execute(), ReturnType(DecisionNodeTrueResultId));
+}
+
+TEST_F(NodeRegistryTest, RegisterDecisionNodeWithFunctorMoveIndependentNodes) {
+  struct Functor {
+    bool operator()() { return ++counter_ > NumExecutions; }
+    int counter_ = 0;
+    const int NumExecutions = 3;
+  };
+  const NodeTypeId TypeId{"DecisionFunctorNode"};
+  registry.registerDecisionNodeType(TypeId, std::move(Functor()));
+  std::unique_ptr<BehaviorFlowNodeBase> node1 =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  std::unique_ptr<BehaviorFlowNodeBase> node2 =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  EXPECT_EQ(node1->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node1->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node1->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node1->execute(), ReturnType(DecisionNodeTrueResultId));
+  EXPECT_EQ(node1->execute(), ReturnType(DecisionNodeTrueResultId));
+
+  EXPECT_EQ(node2->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node2->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node2->execute(), ReturnType(DecisionNodeFalseResultId));
+  EXPECT_EQ(node2->execute(), ReturnType(DecisionNodeTrueResultId));
+  EXPECT_EQ(node2->execute(), ReturnType(DecisionNodeTrueResultId));
+}
+
 TEST_F(NodeRegistryTest, RegisterRunningDecisionNode) {
   class Counter {
    public:
@@ -230,6 +290,33 @@ TEST_F(NodeRegistryTest, RegisterCustomNodeTypeWithFunctorReference) {
   EXPECT_EQ(functor.counter_, 1);
   EXPECT_EQ(node->execute(), ReturnType("2"));
   EXPECT_EQ(functor.counter_, 2);
+  std::optional<NodeTypeMetadata> metadata =
+      NodeRegistryAccessor::getNodeTypeMetadata(registry, TypeId);
+  ASSERT_TRUE(metadata.has_value());
+  EXPECT_EQ(metadata->node_type_id, TypeId);
+  EXPECT_EQ(metadata->valid_result_ids, IntTestNodeTypeInterpreter::validResultIds());
+}
+
+TEST_F(NodeRegistryTest, RegisterCustomNodeTypeWithFunctorMove) {
+  std::shared_ptr<int> counter = std::make_shared<int>(0);
+  struct Functor {
+    Functor(std::shared_ptr<int> counter) : counter_(std::move(counter)) {}
+    int operator()() { return ++(*counter_); }
+    std::shared_ptr<int> counter_;
+  };
+  struct IntTestNodeTypeInterpreter {
+    static std::vector<ResultId> validResultIds() { return {ResultId("1"), ResultId("2")}; }
+    static ReturnType toNodeReturnType(int value) { return ReturnType(std::to_string(value)); }
+  };
+  Functor functor(counter);
+  const NodeTypeId TypeId{"FunctorNodeType"};
+  registry.registerNodeType<int, IntTestNodeTypeInterpreter>(TypeId, std::move(functor));
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  EXPECT_EQ(node->execute(), ReturnType("1"));
+  EXPECT_EQ(*counter, 1);
+  EXPECT_EQ(node->execute(), ReturnType("2"));
+  EXPECT_EQ(*counter, 2);
   std::optional<NodeTypeMetadata> metadata =
       NodeRegistryAccessor::getNodeTypeMetadata(registry, TypeId);
   ASSERT_TRUE(metadata.has_value());

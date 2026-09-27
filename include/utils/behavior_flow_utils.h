@@ -16,7 +16,7 @@ namespace bflow {
 inline const NodeTypeId SuccessNodeTypeId{"Success"};
 inline const NodeTypeId FailureNodeTypeId{"Failure"};
 
-// ScopeGuard utility for executing a lambda on scope exit
+/** ScopeGuard utility for executing a lambda on scope exit */
 class ScopeGuard {
  public:
   explicit ScopeGuard(std::function<void()> on_exit) : on_exit_(std::move(on_exit)) {}
@@ -28,7 +28,7 @@ class ScopeGuard {
   std::function<void()> on_exit_;
 };
 
-// Concept to ensure the range contains string-convertible elements
+/** Concept to ensure the range contains string-convertible elements */
 template <typename Range>
 concept StringRange = std::ranges::input_range<Range> &&
                       requires(std::ranges::range_value_t<Range> value, std::ostream& os) {

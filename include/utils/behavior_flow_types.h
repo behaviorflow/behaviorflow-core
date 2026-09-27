@@ -11,6 +11,11 @@ namespace bflow {
 
 class BehaviorFlowNodeBase;
 
+/**
+ * @brief Wraps a string value as a strongly-typed identifier. Prevents confusion or misuse between
+ * different types of identifiers.
+ * @tparam Tag The type used to differentiate this identifier from others.
+ */
 template <typename Tag>
 struct Id {
  public:
@@ -38,18 +43,38 @@ inline std::string operator+(const Id<Tag>& lhs, const std::string& rhs) {
   return lhs.value() + rhs;
 }
 
+/** Id for a node instance */
 struct NodeIdTag {};
-struct NodeTypeIdTag {};
-struct ResultIdTag {};
 using NodeId = Id<NodeIdTag>;
+
+/** Id for a node type */
+struct NodeTypeIdTag {};
 using NodeTypeId = Id<NodeTypeIdTag>;
+
+/** Id for the result of a completed node execution */
+struct ResultIdTag {};
 using ResultId = Id<ResultIdTag>;
 
+/**
+ * @brief This is what is ultimately returned after a single execution tick of a node. It can either
+ * represent a ResultId (which informs the subsequent node to execute), or it can indicate that
+ * the node is still running and should be ticked again in the next cycle.
+ */
 class ReturnType {
  public:
+  /** Creates a ReturnType indicating the node is still running. */
   static ReturnType StillRunning() { return ReturnType(StillRunningTag{}); }
+
+  /**
+   * Constructs a ReturnType representing a completed node execution with the given result_id.
+   */
   explicit ReturnType(ResultId result_id) : result_id_(result_id) {}
+
+  /** Constructs a ReturnType representing a completed node execution with the given result_id as a
+   * string.
+   */
   explicit ReturnType(std::string result_id_str) : result_id_(ResultId(result_id_str)) {}
+
   auto operator<=>(const ReturnType&) const = default;
   bool still_running() const { return still_running_; }
   const ResultId& result_id() const { return result_id_; }
