@@ -11,19 +11,19 @@ inline const ResultId SimpleNodeResultId{""};
 inline const ResultId DecisionNodeTrueResultId{"Yes"};
 inline const ResultId DecisionNodeFalseResultId{"No"};
 
-enum class SimpleNodeResult { Running, Finished };
+enum class AsyncSimpleNodeResult { Running, Finished };
 
-class SimpleResultTypeInterpreter {
- public:
-  static ReturnType toNodeReturnType(SimpleNodeResult result) {
-    return result == SimpleNodeResult::Running ? ReturnType::StillRunning()
-                                               : ReturnType(SimpleNodeResultId);
+struct AsyncSimpleResultTypeInterpreter {
+  using ResultType = AsyncSimpleNodeResult;
+  static ReturnType toNodeReturnType(AsyncSimpleNodeResult result) {
+    return result == AsyncSimpleNodeResult::Running ? ReturnType::StillRunning()
+                                                    : ReturnType(SimpleNodeResultId);
   }
   static std::vector<ResultId> validResultIds() { return {SimpleNodeResultId}; }
 };
 
-class BoolResultTypeInterpreter {
- public:
+struct BoolResultTypeInterpreter {
+  using ResultType = bool;
   static ReturnType toNodeReturnType(bool result) {
     return result ? ReturnType(DecisionNodeTrueResultId) : ReturnType(DecisionNodeFalseResultId);
   }

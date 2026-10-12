@@ -86,6 +86,13 @@ class ReturnType {
   bool still_running_{false};
 };
 
+inline std::ostream& operator<<(std::ostream& os, const ReturnType& rt) {
+  if (rt.still_running()) {
+    return os << "ReturnType::StillRunning";
+  }
+  return os << "ReturnType(\"" << rt.result_id() << "\")";
+}
+
 struct NodeTypeMetadata {
   NodeTypeId node_type_id;
   std::vector<ResultId> valid_result_ids;

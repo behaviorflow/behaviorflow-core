@@ -24,17 +24,19 @@ class NodeRegistry {
 
   /**
    * @brief Registers a node type so that it can be used in a node graph. Registered node types
-   * define the behavior of node instances associated with them.
+   * define the behavior of node instances associated with them. A BehaviorFlowNodeType object will
+   * be created for each node instance.
    * @tparam NodeT The type of the node to register. Must derive from BehaviorFlowNodeBase.
    * @tparam Args The constructor argument types of NoteT.
    * @param node_type_id The unique identifier used to reference this node type.
    * @param valid_result_ids The list of all result IDs that this node can return after executing.
    * The result IDs are used to determine the next node to execute based on the result of this node.
-   * @param args What arguments to pass to the constructor of the node type whenever instantiated.
+   * @param constructor_args What arguments to pass to the constructor of the node type whenever
+   * instantiated. These will be copied for each node instance (and thus must be copiable).
    */
   template <BehaviorFlowNodeType NodeT, typename... Args>
   void registerNodeType(const NodeTypeId& node_type_id, std::vector<ResultId> valid_result_ids,
-                        Args&&... args);
+                        Args&&... constructor_args);
 
   /**
    * @brief Registers a node type defined by a given execution function and result type interpreter.
@@ -55,28 +57,75 @@ class NodeRegistry {
   void registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function);
 
   /**
-   * @brief Registers a node type that has an execution function with void return type (suggesting
-   * that the node lasts a single tick and that there is only one possible node it can transition
-   * to).
+   * @brief
+   * @tparam ObjectT
+   * @tparam ...CtorArgs
+   * @tparam ResultTInterpreter
+   * @tparam InitFcn
+   * @tparam TeardownFcn
+   * @tparam ExecutionFcn
+   * @param node_type_id
+   * @param ...constructor_args
+   */
+  template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter,
+            auto InitFcn = nullptr, auto TeardownFcn = nullptr, typename... CtorArgs>
+    requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
+  void registerNodeType(const NodeTypeId& node_type_id, CtorArgs&&... constructor_args);
+
+  /**
+   * @brief Registers a simple node type (meaning that there is only one output port) using an
+   * execution function with void return type.
    */
   void registerSimpleNodeType(const NodeTypeId& node_type_id,
                               VoidNodeFunction auto&& execution_function);
 
   /**
-   * @brief Registers a node type that has an execution function that returns a SimpleNodeResult,
-   * meaning that after each execution tick the node can either be completed or still running. If it
-   * is still running, it will continue to be executed in subsequent ticks. If it is completed, it
-   * will transition to the next node.
+   * @brief Registers a simple node type (meaning that there is only one output port) using an
+   * execution function with a AsyncSimpleNodeResult return type. The AsyncSimpleNodeResult type
+   * allows the user to specify that the node is still running after the function executes, meaning
+   * it will be executed again in the next tick of the node graph.
    */
-  void registerSimpleNodeType(const NodeTypeId& node_type_id,
-                              SimpleNodeFunction auto&& execution_function);
+  void registerSimpleNodeTypeAsync(const NodeTypeId& node_type_id,
+                                   AsyncSimpleNodeFunction auto&& execution_function);
 
   /**
-   * @brief Registers a node type that has an execution function with a boolean return type. The
-   * return value will determine the flow of execution.
+   * @brief
+   * @tparam ObjectT
+   * @tparam ...CtorArgs
+   * @tparam ExecutionFcn
+   * @tparam InitFcn
+   * @tparam TeardownFcn
+   * @param node_type_id
+   * @param ...constructor_args
+   */
+  template <typename ObjectT, auto ExecutionFcn, auto InitFcn = nullptr, auto TeardownFcn = nullptr,
+            typename... CtorArgs>
+    requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, AsyncSimpleResultTypeInterpreter,
+                                    InitFcn, TeardownFcn>
+  void registerSimpleNodeTypeAsync(const NodeTypeId& node_type_id, CtorArgs&&... constructor_args);
+
+  /**
+   * @brief Registers a decision node type (Yes or No ports) that has an execution function with a
+   * boolean return type. True maps to "Yes" and False maps to "No".
    */
   void registerDecisionNodeType(const NodeTypeId& node_type_id,
                                 BoolNodeFunction auto&& execution_function);
+
+  /**
+   * @brief
+   * @tparam ObjectT
+   * @tparam ...CtorArgs
+   * @tparam ExecutionFcn
+   * @tparam InitFcn
+   * @tparam TeardownFcn
+   * @param node_type_id
+   * @param ...constructor_args
+   */
+  template <typename ObjectT, auto ExecutionFcn, auto InitFcn = nullptr, auto TeardownFcn = nullptr,
+            typename... CtorArgs>
+    requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, BoolResultTypeInterpreter, InitFcn,
+                                    TeardownFcn>
+  void registerDecisionNodeType(const NodeTypeId& node_type_id, CtorArgs&&... constructor_args);
 
  private:
   void registerMetadata(const NodeTypeMetadata& metadata);
@@ -90,8 +139,9 @@ class NodeRegistry {
 
 template <BehaviorFlowNodeType NodeT, typename... Args>
 void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
-                                    std::vector<ResultId> valid_result_ids, Args&&... args) {
-  node_factory_->registerNodeType<NodeT>(node_type_id, std::forward<Args>(args)...);
+                                    std::vector<ResultId> valid_result_ids,
+                                    Args&&... constructor_args) {
+  node_factory_->registerNodeType<NodeT>(node_type_id, std::forward<Args>(constructor_args)...);
   registerMetadata(NodeTypeMetadata{
       .node_type_id = node_type_id,
       .valid_result_ids = std::move(valid_result_ids),
@@ -102,9 +152,7 @@ template <typename ResultT, ResultTypeInterpreter<ResultT> ResultTInterpreter, t
   requires NodeFunction<Callable, ResultT>
 void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function) {
   node_factory_->registerNodeType<BehaviorFlowNode>(
-      node_type_id,
-      [fn = std::forward<Callable>(execution_function)]() mutable
-          -> ReturnType {  // todo: consider removing mutable and make move-to functors template
+      node_type_id, [fn = std::forward<Callable>(execution_function)]() -> ReturnType {
         return ResultTInterpreter::toNodeReturnType(std::invoke(fn));
       });
   registerMetadata(NodeTypeMetadata{
@@ -113,12 +161,22 @@ void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id, Callable&& e
   });
 }
 
+template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter, auto InitFcn = nullptr,
+          auto TeardownFcn = nullptr, typename... CtorArgs>
+  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
+void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
+                                    CtorArgs&&... constructor_args) {
+  registerNodeType<BehaviorFlowNodeObjectWrapper<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn,
+                                                 TeardownFcn>>(
+      node_type_id, ResultTInterpreter::validResultIds(),
+      std::forward<CtorArgs>(constructor_args)...);
+}
+
 inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
                                                  VoidNodeFunction auto&& execution_function) {
   node_factory_->registerNodeType<BehaviorFlowNode>(
       node_type_id,
-      [fn =
-           std::forward<decltype(execution_function)>(execution_function)]() mutable -> ReturnType {
+      [fn = std::forward<decltype(execution_function)>(execution_function)]() -> ReturnType {
         std::invoke(fn);
         return ReturnType(SimpleNodeResultId);
       });
@@ -128,16 +186,40 @@ inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
   });
 }
 
-inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
-                                                 SimpleNodeFunction auto&& execution_function) {
-  registerNodeType<SimpleNodeResult, SimpleResultTypeInterpreter>(
+inline void NodeRegistry::registerSimpleNodeTypeAsync(
+    const NodeTypeId& node_type_id, AsyncSimpleNodeFunction auto&& execution_function) {
+  registerNodeType<AsyncSimpleNodeResult, AsyncSimpleResultTypeInterpreter>(
       node_type_id, std::forward<decltype(execution_function)>(execution_function));
+}
+
+template <typename ObjectT, auto ExecutionFcn, auto InitFcn = nullptr, auto TeardownFcn = nullptr,
+          typename... CtorArgs>
+  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, AsyncSimpleResultTypeInterpreter, InitFcn,
+                                  TeardownFcn>
+void NodeRegistry::registerSimpleNodeTypeAsync(const NodeTypeId& node_type_id,
+                                               CtorArgs&&... constructor_args) {
+  registerNodeType<BehaviorFlowNodeObjectWrapper<
+      ObjectT, ExecutionFcn, AsyncSimpleResultTypeInterpreter, InitFcn, TeardownFcn>>(
+      node_type_id, AsyncSimpleResultTypeInterpreter::validResultIds(),
+      std::forward<CtorArgs>(constructor_args)...);
 }
 
 inline void NodeRegistry::registerDecisionNodeType(const NodeTypeId& node_type_id,
                                                    BoolNodeFunction auto&& execution_function) {
   registerNodeType<bool, BoolResultTypeInterpreter>(
       node_type_id, std::forward<decltype(execution_function)>(execution_function));
+}
+
+template <typename ObjectT, auto ExecutionFcn, auto InitFcn = nullptr, auto TeardownFcn = nullptr,
+          typename... CtorArgs>
+  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, BoolResultTypeInterpreter, InitFcn,
+                                  TeardownFcn>
+void NodeRegistry::registerDecisionNodeType(const NodeTypeId& node_type_id,
+                                            CtorArgs&&... constructor_args) {
+  registerNodeType<BehaviorFlowNodeObjectWrapper<ObjectT, ExecutionFcn, BoolResultTypeInterpreter,
+                                                 InitFcn, TeardownFcn>>(
+      node_type_id, BoolResultTypeInterpreter::validResultIds(),
+      std::forward<CtorArgs>(constructor_args)...);
 }
 
 /** Accessor class for instantiating nodes from NodeRegistry to keep NodeRegistry's API

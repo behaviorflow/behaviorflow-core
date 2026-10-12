@@ -33,7 +33,7 @@ template <typename Func>
 concept VoidNodeFunction = NodeFunction<Func, void>;
 
 template <typename Func>
-concept SimpleNodeFunction = NodeFunction<Func, SimpleNodeResult>;
+concept AsyncSimpleNodeFunction = NodeFunction<Func, AsyncSimpleNodeResult>;
 
 template <typename Func>
 concept BoolNodeFunction = NodeFunction<Func, bool>;
@@ -46,6 +46,24 @@ concept ResultTypeInterpreter = requires {
 
 template <typename T>
 concept BehaviorFlowNodeType = std::is_base_of<BehaviorFlowNodeBase, T>::value;
+
+template <typename ObjectT, auto MethodPtr, typename ResultT>
+concept ObjectFcn = std::is_invocable_v<decltype(MethodPtr), ObjectT&> &&
+                    std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, ResultT>;
+
+template <typename ObjectT, auto MethodPtr>
+concept OptionalVoidObjectFcn =
+    std::is_null_pointer_v<decltype(MethodPtr)> ||
+    (std::is_invocable_v<decltype(MethodPtr), ObjectT&> &&
+     std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, void>);
+
+template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter,
+          auto InitFcn = nullptr, auto TeardownFcn = nullptr>
+concept ValidObjectWrapperNode =
+    ResultTypeInterpreter<ResultTInterpreter, typename ResultTInterpreter::ResultType> &&
+    ObjectFcn<ObjectT, ExecutionFcn, typename ResultTInterpreter::ResultType> &&
+    OptionalVoidObjectFcn<ObjectT, InitFcn> &&
+    OptionalVoidObjectFcn<ObjectT, TeardownFcn>;
 
 }  // namespace bflow
 

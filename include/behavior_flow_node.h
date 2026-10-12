@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "utils/behavior_flow_types.h"
+#include "utils/concepts.h"
 
 namespace bflow {
 
@@ -53,7 +54,7 @@ class BehaviorFlowNodeBase {
 class BehaviorFlowNode : public BehaviorFlowNodeBase {
  public:
   BehaviorFlowNode() = delete;
-  BehaviorFlowNode(std::function<ReturnType()> execution_function)
+  explicit BehaviorFlowNode(std::function<ReturnType()> execution_function)
       : execution_function_(execution_function) {}
 
   ReturnType execute() override {
@@ -63,6 +64,40 @@ class BehaviorFlowNode : public BehaviorFlowNodeBase {
 
  private:
   std::function<ReturnType()> execution_function_;
+};
+
+template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter, auto InitFcn = nullptr,
+          auto TeardownFcn = nullptr>
+  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
+class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
+ public:
+  template <typename... CtorArgs>
+  explicit BehaviorFlowNodeObjectWrapper(CtorArgs&&... constructor_args)
+      : object_(std::forward<CtorArgs>(constructor_args)...) {}
+
+  ReturnType execute() override {
+    if constexpr (!std::is_null_pointer_v<decltype(InitFcn)>) {
+      if (!running_) {
+        std::invoke(InitFcn, object_);
+      }
+    }
+    running_ = true;
+
+    ReturnType result = ResultTInterpreter::toNodeReturnType(std::invoke(ExecutionFcn, object_));
+
+    if (!result.still_running()) {
+      if constexpr (!std::is_null_pointer_v<decltype(TeardownFcn)>) {
+        std::invoke(TeardownFcn, object_);
+      }
+      running_ = false;
+    }
+
+    return result;
+  }
+
+ private:
+  ObjectT object_;
+  bool running_ = false;
 };
 
 // <ResultT>
