@@ -1,12 +1,14 @@
 #include "json_graph_parser.h"
-#include "json.hpp"
+
 #include <fstream>
+
+#include "json.hpp"
 
 namespace bflow {
 
 static void validateRequiredFields(const nlohmann::json& json,
-                            const std::vector<std::string>& required_fields,
-                            const std::string& context_description) {
+                                   const std::vector<std::string>& required_fields,
+                                   const std::string& context_description) {
   for (const auto& field : required_fields) {
     if (!json.contains(field)) {
       throw std::runtime_error("Missing required field: '" + field + "' in " + context_description);
@@ -14,8 +16,7 @@ static void validateRequiredFields(const nlohmann::json& json,
   }
 }
 
-NodeGraph jsonFileToNodeGraph(
-    const std::filesystem::path& graph_file_path) {
+NodeGraph jsonFileToNodeGraph(const std::filesystem::path& graph_file_path) {
   std::ifstream file(graph_file_path, std::ios::binary);
   if (!file.is_open()) {
     throw std::runtime_error("Could not open file: " + graph_file_path.string());

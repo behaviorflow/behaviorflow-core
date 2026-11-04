@@ -1,2 +1,13 @@
 BasedOnStyle: Google
+Language: Cpp
 ColumnLimit: 100
+UseTab: Never
+PenaltyExcessCharacter: 100
+SortIncludes: true
+PointerAlignment: Left
+DerivePointerAlignment: false
+BinPackParameters: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+SpacesBeforeTrailingComments: 2

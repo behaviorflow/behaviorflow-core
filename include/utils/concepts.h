@@ -25,8 +25,7 @@ template <typename T>
 using unwrap_reference_wrapper_t = typename unwrap_reference_wrapper<std::remove_cvref_t<T>>::type;
 
 template <typename Func, typename ReturnT>
-concept NodeFunction =
-    std::invocable<unwrap_reference_wrapper_t<Func>> &&
+concept NodeFunction = std::invocable<unwrap_reference_wrapper_t<Func>> &&
     std::is_same_v<std::invoke_result_t<unwrap_reference_wrapper_t<Func>>, ReturnT>;
 
 template <typename Func>
@@ -49,21 +48,22 @@ concept BehaviorFlowNodeType = std::is_base_of<BehaviorFlowNodeBase, T>::value;
 
 template <typename ObjectT, auto MethodPtr, typename ResultT>
 concept ObjectFcn = std::is_invocable_v<decltype(MethodPtr), ObjectT&> &&
-                    std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, ResultT>;
+    std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, ResultT>;
 
 template <typename ObjectT, auto MethodPtr>
-concept OptionalVoidObjectFcn =
-    std::is_null_pointer_v<decltype(MethodPtr)> ||
-    (std::is_invocable_v<decltype(MethodPtr), ObjectT&> &&
-     std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, void>);
+concept OptionalVoidObjectFcn = std::is_null_pointer_v<decltype(MethodPtr)> ||
+    (std::is_invocable_v<decltype(MethodPtr), ObjectT&>&&
+         std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, void>);
 
-template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter,
-          auto InitFcn = nullptr, auto TeardownFcn = nullptr>
+template <typename ObjectT,
+          auto ExecutionFcn,
+          typename ResultTInterpreter,
+          auto InitFcn = nullptr,
+          auto TeardownFcn = nullptr>
 concept ValidObjectWrapperNode =
     ResultTypeInterpreter<ResultTInterpreter, typename ResultTInterpreter::ResultType> &&
     ObjectFcn<ObjectT, ExecutionFcn, typename ResultTInterpreter::ResultType> &&
-    OptionalVoidObjectFcn<ObjectT, InitFcn> &&
-    OptionalVoidObjectFcn<ObjectT, TeardownFcn>;
+    OptionalVoidObjectFcn<ObjectT, InitFcn> && OptionalVoidObjectFcn<ObjectT, TeardownFcn>;
 
 }  // namespace bflow
 

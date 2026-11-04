@@ -13,7 +13,8 @@
 namespace bflow {
 
 NodeGraph::NodeGraph(const std::vector<NodeTypeDescription>& node_types,
-                     const std::vector<NodeDescription>& nodes, const NodeId& start_node_id) {
+                     const std::vector<NodeDescription>& nodes,
+                     const NodeId& start_node_id) {
   bool start_node_found = false;
   for (const auto& node_type : node_types) {
     addNodeType(node_type);
@@ -112,7 +113,8 @@ void NodeGraph::validateNodeExists(const NodeId& node_id, const std::string& exc
   }
 }
 
-void NodeGraph::validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id,
+void NodeGraph::validateTransitionExists(const NodeId& from_node_id,
+                                         const ResultId& result_id,
                                          const std::string& exception_msg) const {
   validateNodeExists(from_node_id, exception_msg);
   const auto& from_node = nodes_.at(from_node_id);

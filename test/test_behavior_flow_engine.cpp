@@ -83,12 +83,11 @@ TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
 // Todo: Tick graph with multi-cycle node
 
 TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
-  NodeGraph graph = NodeGraph(node_type_descriptions_,
-                              {{NodeId("node1"),
-                                IncrementCounterNodeTypeId,
-                                {{SimpleNodeResultId, NodeId("failure_node")}}},
-                               {NodeId("failure_node"), FailureNodeTypeId, {}}},
-                              NodeId("node1"));
+  NodeGraph graph = NodeGraph(
+      node_type_descriptions_,
+      {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("failure_node")}}},
+       {NodeId("failure_node"), FailureNodeTypeId, {}}},
+      NodeId("node1"));
   BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
   BehaviorFlowResult result = bf_engine.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Failure);

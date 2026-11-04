@@ -28,7 +28,8 @@ class NodeGraph {
 
   NodeGraph() = default;
   NodeGraph(const std::vector<NodeTypeDescription>& node_types,
-            const std::vector<NodeDescription>& nodes, const NodeId& start_node_id);
+            const std::vector<NodeDescription>& nodes,
+            const NodeId& start_node_id);
 
   void addNodeType(const NodeTypeDescription& node_type_description);
   void addStartNode(const NodeDescription& node_description);
@@ -41,7 +42,8 @@ class NodeGraph {
 
  private:
   void validateNodeExists(const NodeId& node_id, const std::string& exception_msg) const;
-  void validateTransitionExists(const NodeId& from_node_id, const ResultId& result_id,
+  void validateTransitionExists(const NodeId& from_node_id,
+                                const ResultId& result_id,
                                 const std::string& exception_msg) const;
   void validateAllTransitionedToNodesExist() const;
   void validateAllNodesAreReachableFromStart() const;

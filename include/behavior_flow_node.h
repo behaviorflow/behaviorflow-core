@@ -66,9 +66,12 @@ class BehaviorFlowNode : public BehaviorFlowNodeBase {
   std::function<ReturnType()> execution_function_;
 };
 
-template <typename ObjectT, auto ExecutionFcn, typename ResultTInterpreter, auto InitFcn = nullptr,
+template <typename ObjectT,
+          auto ExecutionFcn,
+          typename ResultTInterpreter,
+          auto InitFcn = nullptr,
           auto TeardownFcn = nullptr>
-  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
+requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
 class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
  public:
   template <typename... CtorArgs>

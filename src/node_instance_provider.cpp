@@ -7,8 +7,8 @@ namespace bflow {
 NodeInstanceProvider::NodeInstanceProvider(NodeRegistry&& registry)
     : registry_(std::move(registry)) {}
 
-BehaviorFlowNodeBase& NodeInstanceProvider::getNodeInstance(
-  const NodeId& node_instance_id, const NodeTypeId& node_type_id) {
+BehaviorFlowNodeBase& NodeInstanceProvider::getNodeInstance(const NodeId& node_instance_id,
+                                                            const NodeTypeId& node_type_id) {
   auto it = node_instance_map_.find(node_instance_id);
   if (it != node_instance_map_.end()) {
     if (it->second.first != node_type_id) {

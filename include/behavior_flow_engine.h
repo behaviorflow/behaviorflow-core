@@ -21,8 +21,7 @@ class BehaviorFlowEngine {
  public:
   BehaviorFlowEngine() = delete;
   BehaviorFlowEngine(NodeRegistry&& registry, NodeGraph&& graph);
-  BehaviorFlowEngine(NodeRegistry&& registry,
-                                         const std::filesystem::path& graph_json_path);
+  BehaviorFlowEngine(NodeRegistry&& registry, const std::filesystem::path& graph_json_path);
 
   BehaviorFlowResult execute(std::chrono::milliseconds tick_rate);
   BehaviorFlowResult tick();

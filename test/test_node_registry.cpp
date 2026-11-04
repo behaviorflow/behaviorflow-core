@@ -172,7 +172,7 @@ TEST_F(NodeRegistryTest, RegisterStatefulDecisionNode) {
 TEST_F(NodeRegistryTest, RegisterAsyncSimpleNode) {
   class Counter {
    public:
-    explicit Counter(int expiration_count) : expiration_count_(expiration_count), count_(0) {};
+    explicit Counter(int expiration_count) : expiration_count_(expiration_count), count_(0){};
     void increment() { count_++; }
     bool isExpired() const { return count_ >= expiration_count_; }
     int expiration_count_;

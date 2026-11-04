@@ -31,13 +31,14 @@ class ScopeGuard {
 /** Concept to ensure the range contains string-convertible elements */
 template <typename Range>
 concept StringRange = std::ranges::input_range<Range> &&
-                      requires(std::ranges::range_value_t<Range> value, std::ostream& os) {
-                        { os << value } -> std::convertible_to<std::ostream&>;
-                      };
+    requires(std::ranges::range_value_t<Range> value, std::ostream& os) {
+  { os << value } -> std::convertible_to<std::ostream&>;
+};
 
 // todo: not sure I want it inline
 template <StringRange Range>
-inline std::string joinStrings(Range&& strings, const std::string& delimiter = ", ",
+inline std::string joinStrings(Range&& strings,
+                               const std::string& delimiter = ", ",
                                bool quote_elements = true) {
   std::ostringstream result;
   bool first = true;

@@ -21,14 +21,15 @@ class NodeInstanceProvider {
   // todo: copy/move constructors?
 
   BehaviorFlowNodeBase& getNodeInstance(const NodeId& node_instance_id,
-                                          const NodeTypeId& node_type_id);
+                                        const NodeTypeId& node_type_id);
 
   std::optional<NodeTypeMetadata> getNodeTypeMetadata(const NodeTypeId& node_type_id) const;
 
   void clear() { node_instance_map_.clear(); }
 
  private:
-  std::unordered_map<NodeId, std::pair<NodeTypeId, std::unique_ptr<BehaviorFlowNodeBase>>> node_instance_map_;
+  std::unordered_map<NodeId, std::pair<NodeTypeId, std::unique_ptr<BehaviorFlowNodeBase>>>
+      node_instance_map_;
   NodeRegistry registry_;
 };
 

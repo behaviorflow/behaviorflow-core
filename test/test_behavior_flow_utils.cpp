@@ -1,13 +1,13 @@
 // Copyright (c) 2025, Mitch Adams
 
-#include "utils/behavior_flow_utils.h"
-
 #include <gtest/gtest.h>
 
 #include <array>
 #include <list>
 #include <string>
 #include <vector>
+
+#include "utils/behavior_flow_utils.h"
 
 using namespace bflow;
 
