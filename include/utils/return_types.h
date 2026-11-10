@@ -14,7 +14,6 @@ inline const ResultId DecisionNodeFalseResultId{"No"};
 enum class AsyncSimpleNodeResult { Running, Finished };
 
 struct AsyncSimpleResultTypeInterpreter {
-  using ResultType = AsyncSimpleNodeResult;
   static ReturnType toNodeReturnType(AsyncSimpleNodeResult result) {
     return result == AsyncSimpleNodeResult::Running ? ReturnType::StillRunning()
                                                     : ReturnType(SimpleNodeResultId);
@@ -23,7 +22,6 @@ struct AsyncSimpleResultTypeInterpreter {
 };
 
 struct BoolResultTypeInterpreter {
-  using ResultType = bool;
   static ReturnType toNodeReturnType(bool result) {
     return result ? ReturnType(DecisionNodeTrueResultId) : ReturnType(DecisionNodeFalseResultId);
   }
