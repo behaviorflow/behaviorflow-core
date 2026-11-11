@@ -169,7 +169,7 @@ TEST_F(NodeRegistryTest, RegisterStatefulDecisionNode) {
   EXPECT_EQ(node->execute(), ReturnType(DecisionNodeTrueResultId));
 }
 
-TEST_F(NodeRegistryTest, RegisterAsyncSimpleNode) {
+TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeCallerOwningState) {
   class Counter {
    public:
     explicit Counter(int expiration_count) : expiration_count_(expiration_count), count_(0){};
@@ -195,7 +195,32 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNode) {
   EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
 }
 
-TEST_F(NodeRegistryTest, RegisterAsyncSimpleStatefulNodeWithInitFcn) {
+TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeLambdaOwningState) {
+  class Counter {
+   public:
+    explicit Counter(int expiration_count) : expiration_count_(expiration_count), count_(0){};
+    void increment() { count_++; }
+    bool isExpired() const { return count_ >= expiration_count_; }
+    int expiration_count_;
+    int count_;
+  };
+  const NodeTypeId TypeId{"AsyncSimpleNode"};
+  registry.registerSimpleNodeTypeAsync(TypeId, [counter = Counter(3)]() mutable -> AsyncSimpleNodeResult {
+    counter.increment();
+    if (counter.isExpired()) {
+      return AsyncSimpleNodeResult::Finished;
+    } else {
+      return AsyncSimpleNodeResult::Running;
+    }
+  });
+  std::unique_ptr<BehaviorFlowNodeBase> node =
+      NodeRegistryAccessor::instantiateNode(registry, TypeId);
+  EXPECT_EQ(node->execute(), ReturnType::StillRunning());
+  EXPECT_EQ(node->execute(), ReturnType::StillRunning());
+  EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
+}
+
+TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateWithInitFcn) {
   class RunXTimesNode {
     int counter_{0};
     int threshold_{3};
@@ -227,7 +252,7 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleStatefulNodeWithInitFcn) {
   EXPECT_EQ(node->execute(), ReturnType(SimpleNodeResultId));
 }
 
-TEST_F(NodeRegistryTest, RegisterAsyncSimpleStatefulNodeNoInitFcn) {
+TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateNoInitFcn) {
   class RunXTimesNode {
     int counter_{0};
     int threshold_;
