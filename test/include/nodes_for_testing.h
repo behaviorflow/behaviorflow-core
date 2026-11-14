@@ -8,7 +8,7 @@ namespace bflow {
 class TestNodeBasic : public BehaviorFlowNodeBase {
  public:
   TestNodeBasic() = default;
-  ReturnType execute() override { return ReturnType(ResultId("")); };
+  NodeTickResult execute() override { return NodeTickResult(ResultId("")); };
 };
 
 class TestNodeWithConstructorParams : public BehaviorFlowNodeBase {
@@ -18,7 +18,7 @@ class TestNodeWithConstructorParams : public BehaviorFlowNodeBase {
       : param1_(param1), param2_(param2) {}
   int getParam1() { return param1_; }
   std::string getParam2() { return param2_; }
-  ReturnType execute() override { return ReturnType(ResultId("")); };
+  NodeTickResult execute() override { return NodeTickResult(ResultId("")); };
 
  private:
   int param1_;

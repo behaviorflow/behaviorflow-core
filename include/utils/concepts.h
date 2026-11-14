@@ -7,6 +7,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "utils/behavior_flow_types.h"
 #include "utils/return_types.h"
 
 namespace bflow {
@@ -38,10 +39,10 @@ concept AsyncSimpleNodeFunction = NodeFunction<Func, AsyncSimpleNodeResult>;
 template <typename Func>
 concept BoolNodeFunction = NodeFunction<Func, bool>;
 
-template <typename ResultTInterpreter, typename ResultT>
-concept ResultTypeInterpreter = requires {
-  { ResultTInterpreter::validResultIds() } -> std::same_as<std::vector<ResultId>>;
-  { ResultTInterpreter::toNodeReturnType(std::declval<ResultT>()) } -> std::same_as<ReturnType>;
+template <typename ReturnTInterpreter, typename ReturnT>
+concept ReturnTypeInterpreter = requires {
+  { ReturnTInterpreter::validResultIds() } -> std::same_as<std::vector<ResultId>>;
+  { ReturnTInterpreter::toNodeTickResult(std::declval<ReturnT>()) } -> std::same_as<NodeTickResult>;
 };
 
 template <typename T>
@@ -55,12 +56,12 @@ concept OptionalVoidObjectFcn =
 
 template <typename ObjectT,
           auto ExecutionFcn,
-          typename ResultTInterpreter,
+          typename ReturnTInterpreter,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr>
 concept ValidObjectWrapperNode =
     std::is_invocable_v<decltype(ExecutionFcn), ObjectT&> &&
-    ResultTypeInterpreter<ResultTInterpreter,
+    ReturnTypeInterpreter<ReturnTInterpreter,
                           std::invoke_result_t<decltype(ExecutionFcn), ObjectT&>> &&
     OptionalVoidObjectFcn<ObjectT, InitFcn> && OptionalVoidObjectFcn<ObjectT, TeardownFcn>;
 

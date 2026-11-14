@@ -16,10 +16,11 @@ NodeRegistry::NodeRegistry() : node_factory_(std::make_unique<NodeFactory>()) {
 }
 
 void NodeRegistry::registerTerminalNodeType(const NodeTypeId& node_type_id) {
-  node_factory_->registerNodeType<BehaviorFlowNode>(node_type_id, [node_type_id]() -> ReturnType {
-    throw std::runtime_error("Terminal node " + node_type_id.value() +
-                             " was executed, which should not have happened!");
-  });
+  node_factory_->registerNodeType<BehaviorFlowNode>(
+      node_type_id, [node_type_id]() -> NodeTickResult {
+        throw std::runtime_error("Terminal node " + node_type_id.value() +
+                                 " was executed, which should not have happened!");
+      });
   registerMetadata(NodeTypeMetadata{
       .node_type_id = node_type_id,
       .valid_result_ids = {},

@@ -49,7 +49,7 @@ BehaviorFlowResult BehaviorFlowEngine::tick() {
   }
   BehaviorFlowNodeBase& node_instance =
       node_instance_provider_.getNodeInstance(current_node_.node_id, current_node_.node_type);
-  ReturnType node_return = node_instance.execute();
+  NodeTickResult node_return = node_instance.execute();
   if (!node_return.still_running()) {
     current_node_ = graph_.getNextNode(current_node_.node_id, node_return.result_id());
   }

@@ -7,23 +7,27 @@
 
 namespace bflow {
 
+// Simple node return type
 inline const ResultId SimpleNodeResultId{""};
-inline const ResultId DecisionNodeTrueResultId{"Yes"};
-inline const ResultId DecisionNodeFalseResultId{"No"};
 
 enum class AsyncSimpleNodeResult { Running, Finished };
 
-struct AsyncSimpleResultTypeInterpreter {
-  static ReturnType toNodeReturnType(AsyncSimpleNodeResult result) {
-    return result == AsyncSimpleNodeResult::Running ? ReturnType::StillRunning()
-                                                    : ReturnType(SimpleNodeResultId);
+struct AsyncSimpleNodeReturnTypeInterpreter {
+  static NodeTickResult toNodeTickResult(AsyncSimpleNodeResult result) {
+    return result == AsyncSimpleNodeResult::Running ? NodeTickResult::StillRunning()
+                                                    : NodeTickResult(SimpleNodeResultId);
   }
   static std::vector<ResultId> validResultIds() { return {SimpleNodeResultId}; }
 };
 
-struct BoolResultTypeInterpreter {
-  static ReturnType toNodeReturnType(bool result) {
-    return result ? ReturnType(DecisionNodeTrueResultId) : ReturnType(DecisionNodeFalseResultId);
+// boolean return type
+inline const ResultId DecisionNodeTrueResultId{"Yes"};
+inline const ResultId DecisionNodeFalseResultId{"No"};
+
+struct BoolReturnTypeInterpreter {
+  static NodeTickResult toNodeTickResult(bool result) {
+    return result ? NodeTickResult(DecisionNodeTrueResultId)
+                  : NodeTickResult(DecisionNodeFalseResultId);
   }
 
   static std::vector<ResultId> validResultIds() {

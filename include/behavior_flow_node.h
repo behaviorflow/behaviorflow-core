@@ -13,10 +13,10 @@
 
 namespace bflow {
 
-// class ReturnType {
+// class NodeTickResult {
 // public:
 //   using ResultId = std::string;
-//   ReturnType(ResultId result_id, std::string description)
+//   NodeTickResult(ResultId result_id, std::string description)
 //       : result_id_(result_id), description_(description) {}
 //   ResultId getResultId() const { return result_id_; }
 //   std::string getDescription() const { return description_; }
@@ -32,8 +32,8 @@ class BehaviorFlowNodeBase {
 
   // No need to init... static and map
   // void init(const std::string& node_instance_name, );
-  // ReturnType run();
-  virtual ReturnType execute() = 0;
+  // NodeTickResult run();
+  virtual NodeTickResult execute() = 0;
 
   // virtual NodeTypeAttributes getNodeTypeAttributes() = 0;
 
@@ -54,31 +54,31 @@ class BehaviorFlowNodeBase {
 class BehaviorFlowNode : public BehaviorFlowNodeBase {
  public:
   BehaviorFlowNode() = delete;
-  explicit BehaviorFlowNode(std::function<ReturnType()> execution_function)
+  explicit BehaviorFlowNode(std::function<NodeTickResult()> execution_function)
       : execution_function_(execution_function) {}
 
-  ReturnType execute() override {
-    ReturnType result = execution_function_();
+  NodeTickResult execute() override {
+    NodeTickResult result = execution_function_();
     return result;
   }
 
  private:
-  std::function<ReturnType()> execution_function_;
+  std::function<NodeTickResult()> execution_function_;
 };
 
 template <typename ObjectT,
           auto ExecutionFcn,
-          typename ResultTInterpreter,
+          typename ReturnTInterpreter,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr>
-requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ResultTInterpreter, InitFcn, TeardownFcn>
+  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
 class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
  public:
   template <typename... CtorArgs>
   explicit BehaviorFlowNodeObjectWrapper(CtorArgs&&... constructor_args)
       : object_(std::forward<CtorArgs>(constructor_args)...) {}
 
-  ReturnType execute() override {
+  NodeTickResult execute() override {
     if constexpr (!std::is_null_pointer_v<decltype(InitFcn)>) {
       if (!running_) {
         std::invoke(InitFcn, object_);
@@ -86,7 +86,8 @@ class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
     }
     running_ = true;
 
-    ReturnType result = ResultTInterpreter::toNodeReturnType(std::invoke(ExecutionFcn, object_));
+    NodeTickResult result =
+        ReturnTInterpreter::toNodeTickResult(std::invoke(ExecutionFcn, object_));
 
     if (!result.still_running()) {
       if constexpr (!std::is_null_pointer_v<decltype(TeardownFcn)>) {
@@ -114,12 +115,12 @@ class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
 //   explicit SimpleBehaviorFlowNode(std::function<void()> execution_function)
 //       : execution_function_(execution_function) {}
 
-//   ReturnType execute() override {
+//   NodeTickResult execute() override {
 //     if (!execution_function_) {
 //       throw std::runtime_error("No execution function defined for SimpleBehaviorFlowNode.");
 //     }
 //     execution_function_();
-//     return ReturnType(ResultId(""));
+//     return NodeTickResult(ResultId(""));
 //   }
 
 //  private:

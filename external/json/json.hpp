@@ -22284,12 +22284,12 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief access specified object element with default value
     /// @sa https://json.nlohmann.me/api/basic_json/value/
-    template < class ValueType, class ReturnType = typename value_return_type<ValueType>::type,
+    template < class ValueType, class NodeTickResult = typename value_return_type<ValueType>::type,
                detail::enable_if_t <
                    !detail::is_transparent<object_comparator_t>::value
-                   && detail::is_getable<basic_json_t, ReturnType>::value
+                   && detail::is_getable<basic_json_t, NodeTickResult>::value
                    && !std::is_same<value_t, detail::uncvref_t<ValueType>>::value, int > = 0 >
-    ReturnType value(const typename object_t::key_type& key, ValueType && default_value) const
+    NodeTickResult value(const typename object_t::key_type& key, ValueType && default_value) const
     {
         // value only works for objects
         if (JSON_HEDLEY_LIKELY(is_object()))
@@ -22298,7 +22298,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
             const auto it = find(key);
             if (it != end())
             {
-                return it->template get<ReturnType>();
+                return it->template get<NodeTickResult>();
             }
 
             return std::forward<ValueType>(default_value);
@@ -22335,14 +22335,14 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief access specified object element via JSON Pointer with default value
     /// @sa https://json.nlohmann.me/api/basic_json/value/
-    template < class ValueType, class KeyType, class ReturnType = typename value_return_type<ValueType>::type,
+    template < class ValueType, class KeyType, class NodeTickResult = typename value_return_type<ValueType>::type,
                detail::enable_if_t <
                    detail::is_transparent<object_comparator_t>::value
                    && !detail::is_json_pointer<KeyType>::value
                    && is_comparable_with_object_key<KeyType>::value
-                   && detail::is_getable<basic_json_t, ReturnType>::value
+                   && detail::is_getable<basic_json_t, NodeTickResult>::value
                    && !std::is_same<value_t, detail::uncvref_t<ValueType>>::value, int > = 0 >
-    ReturnType value(KeyType && key, ValueType && default_value) const
+    NodeTickResult value(KeyType && key, ValueType && default_value) const
     {
         // value only works for objects
         if (JSON_HEDLEY_LIKELY(is_object()))
@@ -22351,7 +22351,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
             const auto it = find(std::forward<KeyType>(key));
             if (it != end())
             {
-                return it->template get<ReturnType>();
+                return it->template get<NodeTickResult>();
             }
 
             return std::forward<ValueType>(default_value);
@@ -22386,11 +22386,11 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief access specified object element via JSON Pointer with default value
     /// @sa https://json.nlohmann.me/api/basic_json/value/
-    template < class ValueType, class ReturnType = typename value_return_type<ValueType>::type,
+    template < class ValueType, class NodeTickResult = typename value_return_type<ValueType>::type,
                detail::enable_if_t <
-                   detail::is_getable<basic_json_t, ReturnType>::value
+                   detail::is_getable<basic_json_t, NodeTickResult>::value
                    && !std::is_same<value_t, detail::uncvref_t<ValueType>>::value, int > = 0 >
-    ReturnType value(const json_pointer& ptr, ValueType && default_value) const
+    NodeTickResult value(const json_pointer& ptr, ValueType && default_value) const
     {
         // value only works for objects
         if (JSON_HEDLEY_LIKELY(is_object()))
@@ -22398,7 +22398,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
             // if pointer resolves a value, return it or use default value
             JSON_TRY
             {
-                return ptr.get_checked(this).template get<ReturnType>();
+                return ptr.get_checked(this).template get<NodeTickResult>();
             }
             JSON_INTERNAL_CATCH (out_of_range&)
             {
@@ -22419,13 +22419,13 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         return value(ptr.convert(), default_value);
     }
 
-    template < class ValueType, class BasicJsonType, class ReturnType = typename value_return_type<ValueType>::type,
+    template < class ValueType, class BasicJsonType, class NodeTickResult = typename value_return_type<ValueType>::type,
                detail::enable_if_t <
                    detail::is_basic_json<BasicJsonType>::value
-                   && detail::is_getable<basic_json_t, ReturnType>::value
+                   && detail::is_getable<basic_json_t, NodeTickResult>::value
                    && !std::is_same<value_t, detail::uncvref_t<ValueType>>::value, int > = 0 >
     JSON_HEDLEY_DEPRECATED_FOR(3.11.0, basic_json::json_pointer or nlohmann::json_pointer<basic_json::string_t>) // NOLINT(readability/alt_tokens)
-    ReturnType value(const ::nlohmann::json_pointer<BasicJsonType>& ptr, ValueType && default_value) const
+    NodeTickResult value(const ::nlohmann::json_pointer<BasicJsonType>& ptr, ValueType && default_value) const
     {
         return value(ptr.convert(), std::forward<ValueType>(default_value));
     }

@@ -3,7 +3,10 @@
 #ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_TYPES_H_
 #define BEHAVIOR_FLOW__BEHAVIOR_FLOW_TYPES_H_
 
+#include <cstddef>
+#include <functional>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -60,37 +63,37 @@ using ResultId = Id<ResultIdTag>;
  * represent a ResultId (which informs the subsequent node to execute), or it can indicate that
  * the node is still running and should be ticked again in the next cycle.
  */
-class ReturnType {
+class NodeTickResult {
  public:
-  /** Creates a ReturnType indicating the node is still running. */
-  static ReturnType StillRunning() { return ReturnType(StillRunningTag{}); }
+  /** Creates a NodeTickResult indicating the node is still running. */
+  static NodeTickResult StillRunning() { return NodeTickResult(StillRunningTag{}); }
 
   /**
-   * Constructs a ReturnType representing a completed node execution with the given result_id.
+   * Constructs a NodeTickResult representing a completed node execution with the given result_id.
    */
-  explicit ReturnType(ResultId result_id) : result_id_(result_id) {}
+  explicit NodeTickResult(ResultId result_id) : result_id_(result_id) {}
 
-  /** Constructs a ReturnType representing a completed node execution with the given result_id as a
-   * string.
+  /** Constructs a NodeTickResult representing a completed node execution with the given result_id
+   * as a string.
    */
-  explicit ReturnType(std::string result_id_str) : result_id_(ResultId(result_id_str)) {}
+  explicit NodeTickResult(std::string result_id_str) : result_id_(ResultId(result_id_str)) {}
 
-  auto operator<=>(const ReturnType&) const = default;
+  auto operator<=>(const NodeTickResult&) const = default;
   bool still_running() const { return still_running_; }
   const ResultId& result_id() const { return result_id_; }
 
  private:
   struct StillRunningTag {};
-  explicit ReturnType(StillRunningTag) : still_running_(true) {}
+  explicit NodeTickResult(StillRunningTag) : still_running_(true) {}
   ResultId result_id_;
   bool still_running_{false};
 };
 
-inline std::ostream& operator<<(std::ostream& os, const ReturnType& rt) {
+inline std::ostream& operator<<(std::ostream& os, const NodeTickResult& rt) {
   if (rt.still_running()) {
-    return os << "ReturnType::StillRunning";
+    return os << "NodeTickResult::StillRunning";
   }
-  return os << "ReturnType(\"" << rt.result_id() << "\")";
+  return os << "NodeTickResult(\"" << rt.result_id() << "\")";
 }
 
 struct NodeTypeMetadata {

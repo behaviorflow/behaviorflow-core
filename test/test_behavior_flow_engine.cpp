@@ -107,10 +107,10 @@ TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
 
 TEST_F(BehaviorFlowEngineTest, ResultIdMismatchBetweenGraphAndRegisteredThrows) {
   NodeGraph graph = NodeGraph(
-      {{IncrementCounterNodeTypeId, {ResultId("InvalidResultType")}}, {SuccessNodeTypeId, {}}},
+      {{IncrementCounterNodeTypeId, {ResultId("InvalidResult")}}, {SuccessNodeTypeId, {}}},
       {{NodeId("node1"),
         IncrementCounterNodeTypeId,
-        {{ResultId("InvalidResultType"), NodeId("success_node")}}},
+        {{ResultId("InvalidResult"), NodeId("success_node")}}},
        {NodeId("success_node"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
   EXPECT_ANY_THROW(BehaviorFlowEngine(std::move(registry), std::move(graph)));
