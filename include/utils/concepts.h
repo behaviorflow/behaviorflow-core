@@ -55,14 +55,14 @@ concept OptionalVoidObjectFcn =
      std::is_same_v<std::invoke_result_t<decltype(MethodPtr), ObjectT&>, void>);
 
 template <typename ObjectT,
-          auto ExecutionFcn,
+          auto TickFcn,
           typename ReturnTInterpreter,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr>
 concept ValidObjectWrapperNode =
-    std::is_invocable_v<decltype(ExecutionFcn), ObjectT&> &&
+    std::is_invocable_v<decltype(TickFcn), ObjectT&> &&
     ReturnTypeInterpreter<ReturnTInterpreter,
-                          std::invoke_result_t<decltype(ExecutionFcn), ObjectT&>> &&
+                          std::invoke_result_t<decltype(TickFcn), ObjectT&>> &&
     OptionalVoidObjectFcn<ObjectT, InitFcn> && OptionalVoidObjectFcn<ObjectT, TeardownFcn>;
 
 }  // namespace bflow

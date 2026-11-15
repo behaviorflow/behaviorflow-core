@@ -33,7 +33,7 @@ class BehaviorFlowNodeBase {
   // No need to init... static and map
   // void init(const std::string& node_instance_name, );
   // NodeTickResult run();
-  virtual NodeTickResult execute() = 0;
+  virtual NodeTickResult tick() = 0;
 
   // virtual NodeTypeAttributes getNodeTypeAttributes() = 0;
 
@@ -54,31 +54,31 @@ class BehaviorFlowNodeBase {
 class BehaviorFlowNode : public BehaviorFlowNodeBase {
  public:
   BehaviorFlowNode() = delete;
-  explicit BehaviorFlowNode(std::function<NodeTickResult()> execution_function)
-      : execution_function_(execution_function) {}
+  explicit BehaviorFlowNode(std::function<NodeTickResult()> tick_function)
+      : tick_function_(tick_function) {}
 
-  NodeTickResult execute() override {
-    NodeTickResult result = execution_function_();
+  NodeTickResult tick() override {
+    NodeTickResult result = tick_function_();
     return result;
   }
 
  private:
-  std::function<NodeTickResult()> execution_function_;
+  std::function<NodeTickResult()> tick_function_;
 };
 
 template <typename ObjectT,
-          auto ExecutionFcn,
+          auto TickFcn,
           typename ReturnTInterpreter,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr>
-  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
+  requires ValidObjectWrapperNode<ObjectT, TickFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
 class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
  public:
   template <typename... CtorArgs>
   explicit BehaviorFlowNodeObjectWrapper(CtorArgs&&... constructor_args)
       : object_(std::forward<CtorArgs>(constructor_args)...) {}
 
-  NodeTickResult execute() override {
+  NodeTickResult tick() override {
     if constexpr (!std::is_null_pointer_v<decltype(InitFcn)>) {
       if (!running_) {
         std::invoke(InitFcn, object_);
@@ -87,7 +87,7 @@ class BehaviorFlowNodeObjectWrapper : public BehaviorFlowNodeBase {
     running_ = true;
 
     NodeTickResult result =
-        ReturnTInterpreter::toNodeTickResult(std::invoke(ExecutionFcn, object_));
+        ReturnTInterpreter::toNodeTickResult(std::invoke(TickFcn, object_));
 
     if (!result.still_running()) {
       if constexpr (!std::is_null_pointer_v<decltype(TeardownFcn)>) {

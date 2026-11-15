@@ -38,7 +38,7 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithLambda) {
   registry.registerSimpleNodeType(TypeId, [local_flag]() { *local_flag = true; });
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
   EXPECT_TRUE(*local_flag);
 
   std::optional<NodeTypeMetadata> metadata =
@@ -53,7 +53,7 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithBind) {
   registry.registerSimpleNodeType(TypeId, std::bind(&NodeRegistryTest::setFlagTrue, this));
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
   EXPECT_TRUE(member_flag_);
 
   std::optional<NodeTypeMetadata> metadata =
@@ -68,7 +68,7 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctionPointer) {
   registry.registerSimpleNodeType(TypeId, setGlobalFlagTrue);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
   EXPECT_TRUE(global_flag);
 
   std::optional<NodeTypeMetadata> metadata =
@@ -87,9 +87,9 @@ TEST_F(NodeRegistryTest, RegisterSimpleNodeWithFunctorReference) {
   registry.registerSimpleNodeType(TypeId, std::ref(functor));
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
   EXPECT_EQ(functor.counter_, 1);
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
   EXPECT_EQ(functor.counter_, 2);
 }
 
@@ -110,9 +110,9 @@ TEST_F(NodeRegistryTest, RegisterDecisionNodeWithLambda) {
   registry.registerDecisionNodeType(TypeId, [local_flag]() { return *local_flag; });
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
   *local_flag = true;
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterDecisionNodeWithBind) {
@@ -121,9 +121,9 @@ TEST_F(NodeRegistryTest, RegisterDecisionNodeWithBind) {
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
   setFlagFalse();
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
   setFlagTrue();
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterDecisionNodeWithFunctionPointer) {
@@ -132,9 +132,9 @@ TEST_F(NodeRegistryTest, RegisterDecisionNodeWithFunctionPointer) {
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
   global_flag = false;
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
   global_flag = true;
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterDecisionNodeWithBindWithArgs) {
@@ -142,7 +142,7 @@ TEST_F(NodeRegistryTest, RegisterDecisionNodeWithBindWithArgs) {
   registry.registerDecisionNodeType(TypeId, std::bind(getFlagArg, true));
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterStatefulDecisionNode) {
@@ -162,11 +162,11 @@ TEST_F(NodeRegistryTest, RegisterStatefulDecisionNode) {
                                     &ExecutionCountChecker::hasExecutedThreshold>(TypeId, 3);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeFalseResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeFalseResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(DecisionNodeTrueResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeCallerOwningState) {
@@ -190,9 +190,9 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeCallerOwningState) {
   });
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeLambdaOwningState) {
@@ -216,9 +216,9 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeLambdaOwningState) {
                                        });
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateWithInitFcn) {
@@ -229,7 +229,7 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateWithInitFcn) {
    public:
     explicit RunXTimesNode(int threshold) : threshold_(threshold) {}
     void reset() { counter_ = 0; }
-    AsyncSimpleNodeResult execute() {
+    AsyncSimpleNodeResult tick() {
       ++counter_;
       if (counter_ < threshold_) {
         return AsyncSimpleNodeResult::Running;
@@ -241,16 +241,16 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateWithInitFcn) {
 
   const NodeTypeId TypeId{"RunXTimes"};
   registry
-      .registerSimpleNodeTypeAsync<RunXTimesNode, &RunXTimesNode::execute, &RunXTimesNode::reset>(
+      .registerSimpleNodeTypeAsync<RunXTimesNode, &RunXTimesNode::tick, &RunXTimesNode::reset>(
           TypeId, 3);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateNoInitFcn) {
@@ -260,7 +260,7 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateNoInitFcn) {
 
    public:
     explicit RunXTimesNode(int threshold) : threshold_(threshold) {}
-    AsyncSimpleNodeResult execute() {
+    AsyncSimpleNodeResult tick() {
       ++counter_;
       if (counter_ < threshold_) {
         return AsyncSimpleNodeResult::Running;
@@ -271,21 +271,21 @@ TEST_F(NodeRegistryTest, RegisterAsyncSimpleNodeClassOwningStateNoInitFcn) {
   };
 
   const NodeTypeId TypeId{"RunXTimes"};
-  registry.registerSimpleNodeTypeAsync<RunXTimesNode, &RunXTimesNode::execute>(TypeId, 3);
+  registry.registerSimpleNodeTypeAsync<RunXTimesNode, &RunXTimesNode::tick>(TypeId, 3);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult::StillRunning());
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
-  EXPECT_EQ(node->execute(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult::StillRunning());
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
+  EXPECT_EQ(node->tick(), NodeTickResult(SimpleNodeResultId));
 }
 
 TEST_F(NodeRegistryTest, RegisterNodeFromNodeClass) {
   class TestNode : public BehaviorFlowNodeBase {
    public:
     explicit TestNode(int max_counter) : max_counter_(max_counter) {}
-    NodeTickResult execute() {
+    NodeTickResult tick() {
       if (counter_ < max_counter_) {
         counter_++;
         return NodeTickResult("Ok");
@@ -299,10 +299,10 @@ TEST_F(NodeRegistryTest, RegisterNodeFromNodeClass) {
   registry.registerNodeType<TestNode>(TypeId, {ResultId("Ok"), ResultId("Max")}, 3);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult("Ok"));
-  EXPECT_EQ(node->execute(), NodeTickResult("Ok"));
-  EXPECT_EQ(node->execute(), NodeTickResult("Ok"));
-  EXPECT_EQ(node->execute(), NodeTickResult("Max"));
+  EXPECT_EQ(node->tick(), NodeTickResult("Ok"));
+  EXPECT_EQ(node->tick(), NodeTickResult("Ok"));
+  EXPECT_EQ(node->tick(), NodeTickResult("Ok"));
+  EXPECT_EQ(node->tick(), NodeTickResult("Max"));
 }
 
 TEST_F(NodeRegistryTest, RegisterCustomNodeType) {
@@ -330,8 +330,8 @@ TEST_F(NodeRegistryTest, RegisterCustomNodeType) {
                             IntTestNodeTypeInterpreter>(TypeId);
   std::unique_ptr<BehaviorFlowNodeBase> node =
       NodeRegistryAccessor::instantiateNode(registry, TypeId);
-  EXPECT_EQ(node->execute(), NodeTickResult("1"));
-  EXPECT_EQ(node->execute(), NodeTickResult("2"));
-  EXPECT_EQ(node->execute(), NodeTickResult("3+"));
-  EXPECT_EQ(node->execute(), NodeTickResult("3+"));
+  EXPECT_EQ(node->tick(), NodeTickResult("1"));
+  EXPECT_EQ(node->tick(), NodeTickResult("2"));
+  EXPECT_EQ(node->tick(), NodeTickResult("3+"));
+  EXPECT_EQ(node->tick(), NodeTickResult("3+"));
 };

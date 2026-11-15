@@ -40,22 +40,21 @@ class NodeRegistry {
                         Args&&... constructor_args);
 
   /**
-   * @brief Registers a node type defined by a given execution function and result type interpreter.
-   * Registered node types can be used in a node graph. They define the behavior of node instances
-   * associated with the node type.
-   * @tparam ReturnT The return type of the execution function.
-   * @tparam ReturnTInterpreter Defines how the return type of the execution function is translated
-   * into a standard NodeTickResult type. See include/utils/concepts.h
-   * @tparam Callable The type of the execution function. See include/utils/concepts.h for valid
-   * Callable types
+   * @brief Registers a node type defined by a given execution tick function and return type
+   * interpreter. Registered node types can be used in a node graph. They define the behavior of
+   * node instances associated with the node type.
+   * @tparam ReturnT The return type of the execution tick function.
+   * @tparam ReturnTInterpreter Defines how the return type of the execution tick function is
+   * translated into a standard NodeTickResult type. See include/utils/concepts.h for required
+   * interface.
+   * @tparam Callable The type of the execution tick function. See include/utils/concepts.h for
+   * valid Callable types
    * @param node_type_id The unique identifier used to reference this node type.
-   * @param execution_function The function to execute when a node of this type is run.
-   * @param result_interpreter The instance responsible for interpreting the result of the execution
-   * function.
+   * @param execution_tick_function Called one or more times until the node finishes execution.
    */
   template <typename ReturnT, ReturnTypeInterpreter<ReturnT> ReturnTInterpreter, typename Callable>
     requires NodeFunction<Callable, ReturnT>
-  void registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function);
+  void registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_tick_function);
 
   /**
    * @brief
@@ -64,17 +63,17 @@ class NodeRegistry {
    * @tparam ReturnTInterpreter
    * @tparam InitFcn
    * @tparam TeardownFcn
-   * @tparam ExecutionFcn
+   * @tparam TickFcn
    * @param node_type_id
    * @param ...constructor_args
    */
   template <typename ObjectT,
-            auto ExecutionFcn,
+            auto TickFcn,
             typename ReturnTInterpreter,
             auto InitFcn = nullptr,
             auto TeardownFcn = nullptr,
             typename... CtorArgs>
-    requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
+    requires ValidObjectWrapperNode<ObjectT, TickFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
   void registerNodeType(const NodeTypeId& node_type_id, CtorArgs&&... constructor_args);
 
   /**
@@ -86,30 +85,30 @@ class NodeRegistry {
 
   /**
    * @brief Registers a simple node type (meaning that there is only one output port) using an
-   * execution function with a AsyncSimpleNodeResult return type. The AsyncSimpleNodeResult type
-   * allows the user to specify that the node is still running after the function executes, meaning
-   * it will be executed again in the next tick of the node graph.
+   * execution tick function with a AsyncSimpleNodeResult return type. The AsyncSimpleNodeResult
+   * type allows the user to specify that the node is still running after each tick,
+   * meaning it will be ticked again until the node is no longer running.
    */
   void registerSimpleNodeTypeAsync(const NodeTypeId& node_type_id,
-                                   AsyncSimpleNodeFunction auto&& execution_function);
+                                   AsyncSimpleNodeFunction auto&& execution_tick_function);
 
   /**
    * @brief
    * @tparam ObjectT
    * @tparam ...CtorArgs
-   * @tparam ExecutionFcn
+   * @tparam TickFcn
    * @tparam InitFcn
    * @tparam TeardownFcn
    * @param node_type_id
    * @param ...constructor_args
    */
   template <typename ObjectT,
-            auto ExecutionFcn,
+            auto TickFcn,
             auto InitFcn = nullptr,
             auto TeardownFcn = nullptr,
             typename... CtorArgs>
     requires ValidObjectWrapperNode<ObjectT,
-                                    ExecutionFcn,
+                                    TickFcn,
                                     AsyncSimpleNodeReturnTypeInterpreter,
                                     InitFcn,
                                     TeardownFcn>
@@ -167,9 +166,10 @@ void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
 
 template <typename ReturnT, ReturnTypeInterpreter<ReturnT> ReturnTInterpreter, typename Callable>
   requires NodeFunction<Callable, ReturnT>
-void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id, Callable&& execution_function) {
+void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
+                                    Callable&& execution_tick_function) {
   node_factory_->registerNodeType<BehaviorFlowNode>(
-      node_type_id, [fn = std::forward<Callable>(execution_function)]() mutable -> NodeTickResult {
+      node_type_id, [fn = std::forward<Callable>(execution_tick_function)]() mutable -> NodeTickResult {
         return ReturnTInterpreter::toNodeTickResult(std::invoke(fn));
       });
   registerMetadata(NodeTypeMetadata{
@@ -179,15 +179,15 @@ void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id, Callable&& e
 }
 
 template <typename ObjectT,
-          auto ExecutionFcn,
+          auto TickFcn,
           typename ReturnTInterpreter,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr,
           typename... CtorArgs>
-  requires ValidObjectWrapperNode<ObjectT, ExecutionFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
+  requires ValidObjectWrapperNode<ObjectT, TickFcn, ReturnTInterpreter, InitFcn, TeardownFcn>
 void NodeRegistry::registerNodeType(const NodeTypeId& node_type_id,
                                     CtorArgs&&... constructor_args) {
-  registerNodeType<BehaviorFlowNodeObjectWrapper<ObjectT, ExecutionFcn, ReturnTInterpreter, InitFcn,
+  registerNodeType<BehaviorFlowNodeObjectWrapper<ObjectT, TickFcn, ReturnTInterpreter, InitFcn,
                                                  TeardownFcn>>(
       node_type_id, ReturnTInterpreter::validResultIds(),
       std::forward<CtorArgs>(constructor_args)...);
@@ -208,25 +208,25 @@ inline void NodeRegistry::registerSimpleNodeType(const NodeTypeId& node_type_id,
 }
 
 inline void NodeRegistry::registerSimpleNodeTypeAsync(
-    const NodeTypeId& node_type_id, AsyncSimpleNodeFunction auto&& execution_function) {
+    const NodeTypeId& node_type_id, AsyncSimpleNodeFunction auto&& execution_tick_function) {
   registerNodeType<AsyncSimpleNodeResult, AsyncSimpleNodeReturnTypeInterpreter>(
-      node_type_id, std::forward<decltype(execution_function)>(execution_function));
+      node_type_id, std::forward<decltype(execution_tick_function)>(execution_tick_function));
 }
 
 template <typename ObjectT,
-          auto ExecutionFcn,
+          auto TickFcn,
           auto InitFcn = nullptr,
           auto TeardownFcn = nullptr,
           typename... CtorArgs>
   requires ValidObjectWrapperNode<ObjectT,
-                                  ExecutionFcn,
+                                  TickFcn,
                                   AsyncSimpleNodeReturnTypeInterpreter,
                                   InitFcn,
                                   TeardownFcn>
 void NodeRegistry::registerSimpleNodeTypeAsync(const NodeTypeId& node_type_id,
                                                CtorArgs&&... constructor_args) {
   registerNodeType<BehaviorFlowNodeObjectWrapper<
-      ObjectT, ExecutionFcn, AsyncSimpleNodeReturnTypeInterpreter, InitFcn, TeardownFcn>>(
+      ObjectT, TickFcn, AsyncSimpleNodeReturnTypeInterpreter, InitFcn, TeardownFcn>>(
       node_type_id, AsyncSimpleNodeReturnTypeInterpreter::validResultIds(),
       std::forward<CtorArgs>(constructor_args)...);
 }

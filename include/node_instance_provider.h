@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Mitch Adams
 
-#ifndef BEHAVIOR_FLOW__NODE_EXECUTOR_H_
-#define BEHAVIOR_FLOW__NODE_EXECUTOR_H_
+#ifndef BEHAVIOR_FLOW__NODE_INSTANCE_PROVIDER_H_
+#define BEHAVIOR_FLOW__NODE_INSTANCE_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -35,4 +35,4 @@ class NodeInstanceProvider {
 
 }  // namespace bflow
 
-#endif  // BEHAVIOR_FLOW__NODE_EXECUTOR_H_
+#endif  // BEHAVIOR_FLOW__NODE_INSTANCE_PROVIDER_H_

@@ -43,9 +43,9 @@ TEST_F(NodeInstanceProviderTest, DifferentNodeTypesReturnDifferentInstances) {
   BehaviorFlowNodeBase& instance2 =
       provider->getNodeInstance(NodeId("node2"), NodeTypeId("SetFlagTrue"));
   EXPECT_NE(&instance1, &instance2);
-  instance1.execute();
+  instance1.tick();
   EXPECT_FALSE(flag_);
-  instance2.execute();
+  instance2.tick();
   EXPECT_TRUE(flag_);
 }
 
