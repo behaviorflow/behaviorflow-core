@@ -26,11 +26,11 @@ BehaviorFlowExecutor::BehaviorFlowExecutor(NodeRegistry&& registry,
                                            const std::filesystem::path& graph_json_path)
     : BehaviorFlowExecutor(std::move(registry), std::move(jsonFileToNodeGraph(graph_json_path))) {}
 
-BehaviorFlowResult BehaviorFlowExecutor::execute(std::chrono::milliseconds tick_rate) {
+FlowExecutionResult BehaviorFlowExecutor::execute(std::chrono::milliseconds tick_rate) {
   while (true) {
     std::chrono::steady_clock::time_point tick_start_time = std::chrono::steady_clock::now();
-    const BehaviorFlowResult tick_result = tick();
-    if (tick_result != BehaviorFlowResult::Running) {
+    const FlowExecutionResult tick_result = tick();
+    if (tick_result != FlowExecutionResult::Running) {
       return tick_result;
     }
     // todo: log warning if tick execution time exceeds tick rate
@@ -38,12 +38,12 @@ BehaviorFlowResult BehaviorFlowExecutor::execute(std::chrono::milliseconds tick_
   }
 }
 
-BehaviorFlowResult BehaviorFlowExecutor::tick() {
+FlowExecutionResult BehaviorFlowExecutor::tick() {
   if (isTerminalNodeType(current_node_)) {
     if (current_node_.node_type == SuccessNodeTypeId) {
-      return BehaviorFlowResult::Success;
+      return FlowExecutionResult::Success;
     } else {
-      return BehaviorFlowResult::Failure;
+      return FlowExecutionResult::Failure;
     }
     reset();
   }
@@ -53,7 +53,7 @@ BehaviorFlowResult BehaviorFlowExecutor::tick() {
   if (!node_return.still_running()) {
     current_node_ = graph_.getNextNode(current_node_.node_id, node_return.result_id());
   }
-  return BehaviorFlowResult::Running;
+  return FlowExecutionResult::Running;
 }
 
 void BehaviorFlowExecutor::reset() {

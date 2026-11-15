@@ -11,7 +11,7 @@
 
 namespace bflow {
 
-enum class BehaviorFlowResult {
+enum class FlowExecutionResult {
   Success,
   Failure,
   Running,
@@ -23,8 +23,8 @@ class BehaviorFlowExecutor {
   BehaviorFlowExecutor(NodeRegistry&& registry, NodeGraph&& graph);
   BehaviorFlowExecutor(NodeRegistry&& registry, const std::filesystem::path& graph_json_path);
 
-  BehaviorFlowResult execute(std::chrono::milliseconds tick_rate);
-  BehaviorFlowResult tick();
+  FlowExecutionResult execute(std::chrono::milliseconds tick_rate);
+  FlowExecutionResult tick();
   void reset();
 
  private:

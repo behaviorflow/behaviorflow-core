@@ -43,8 +43,8 @@ TEST_F(BehaviorFlowExecutorTest, ExecuteSimpleGraph) {
        {NodeId("end_success"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
   BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
-  BehaviorFlowResult result = bf_executor.execute(0ms);
-  EXPECT_EQ(result, BehaviorFlowResult::Success);
+  FlowExecutionResult result = bf_executor.execute(0ms);
+  EXPECT_EQ(result, FlowExecutionResult::Success);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
 }
@@ -59,23 +59,23 @@ TEST_F(BehaviorFlowExecutorTest, TickSimpleGraph) {
       NodeId("node1"));
   BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
 
-  BehaviorFlowResult result = bf_executor.tick();
-  EXPECT_EQ(result, BehaviorFlowResult::Running);
+  FlowExecutionResult result = bf_executor.tick();
+  EXPECT_EQ(result, FlowExecutionResult::Running);
   EXPECT_EQ(counter_, 1);
   EXPECT_FALSE(flag_);
 
   result = bf_executor.tick();
-  EXPECT_EQ(result, BehaviorFlowResult::Running);
+  EXPECT_EQ(result, FlowExecutionResult::Running);
   EXPECT_EQ(counter_, 2);
   EXPECT_FALSE(flag_);
 
   result = bf_executor.tick();
-  EXPECT_EQ(result, BehaviorFlowResult::Running);
+  EXPECT_EQ(result, FlowExecutionResult::Running);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
 
   result = bf_executor.tick();
-  EXPECT_EQ(result, BehaviorFlowResult::Success);
+  EXPECT_EQ(result, FlowExecutionResult::Success);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
 }
@@ -89,8 +89,8 @@ TEST_F(BehaviorFlowExecutorTest, ExecuteGraphWithFailure) {
        {NodeId("failure_node"), FailureNodeTypeId, {}}},
       NodeId("node1"));
   BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
-  BehaviorFlowResult result = bf_executor.execute(0ms);
-  EXPECT_EQ(result, BehaviorFlowResult::Failure);
+  FlowExecutionResult result = bf_executor.execute(0ms);
+  EXPECT_EQ(result, FlowExecutionResult::Failure);
   EXPECT_EQ(counter_, 1);
 }
 
@@ -158,8 +158,8 @@ TEST_F(BehaviorFlowExecutorTest, ExecuteGraphFromFile) {
 })json";
   ScopedTempFile temp_file(graph_json, ".json");
   BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), temp_file.path());
-  BehaviorFlowResult result = bf_executor.execute(0ms);
-  EXPECT_EQ(result, BehaviorFlowResult::Success);
+  FlowExecutionResult result = bf_executor.execute(0ms);
+  EXPECT_EQ(result, FlowExecutionResult::Success);
   EXPECT_EQ(counter_, 1);
   EXPECT_TRUE(flag_);
 }
