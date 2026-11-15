@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Mitch Adams
 
-#ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_
-#define BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_
+#ifndef BEHAVIOR_FLOW__BEHAVIOR_FLOW_EXECUTOR_H_
+#define BEHAVIOR_FLOW__BEHAVIOR_FLOW_EXECUTOR_H_
 
 #include <filesystem>
 
@@ -17,11 +17,11 @@ enum class BehaviorFlowResult {
   Running,
 };
 
-class BehaviorFlowEngine {
+class BehaviorFlowExecutor {
  public:
-  BehaviorFlowEngine() = delete;
-  BehaviorFlowEngine(NodeRegistry&& registry, NodeGraph&& graph);
-  BehaviorFlowEngine(NodeRegistry&& registry, const std::filesystem::path& graph_json_path);
+  BehaviorFlowExecutor() = delete;
+  BehaviorFlowExecutor(NodeRegistry&& registry, NodeGraph&& graph);
+  BehaviorFlowExecutor(NodeRegistry&& registry, const std::filesystem::path& graph_json_path);
 
   BehaviorFlowResult execute(std::chrono::milliseconds tick_rate);
   BehaviorFlowResult tick();
@@ -38,4 +38,4 @@ class BehaviorFlowEngine {
 
 }  // namespace bflow
 
-#endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_ENGINE_H_
+#endif  // BEHAVIOR_FLOW__BEHAVIOR_FLOW_EXECUTOR_H_

@@ -7,7 +7,7 @@ set(BF_LIBRARY ${PROJECT_NAME})
 add_library(${BF_LIBRARY}
     src/node_graph.cpp
     src/json_graph_parser.cpp
-    src/behavior_flow_engine.cpp
+    src/behavior_flow_executor.cpp
     src/node_factory.cpp
     src/node_registry.cpp
     src/node_instance_provider.cpp

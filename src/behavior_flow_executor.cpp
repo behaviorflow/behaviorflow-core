@@ -1,4 +1,4 @@
-#include "behavior_flow_engine.h"
+#include "behavior_flow_executor.h"
 
 #include <algorithm>
 #include <cassert>
@@ -14,7 +14,7 @@
 
 namespace bflow {
 
-BehaviorFlowEngine::BehaviorFlowEngine(NodeRegistry&& registry, NodeGraph&& graph)
+BehaviorFlowExecutor::BehaviorFlowExecutor(NodeRegistry&& registry, NodeGraph&& graph)
     : node_instance_provider_(std::move(registry)), graph_(std::move(graph)) {
   graph_.validateThatGraphIsComplete();
   validateThatGraphMatchesRegisteredNodeTypes();
@@ -22,11 +22,11 @@ BehaviorFlowEngine::BehaviorFlowEngine(NodeRegistry&& registry, NodeGraph&& grap
   current_node_ = graph_.getStartNode();
 }
 
-BehaviorFlowEngine::BehaviorFlowEngine(NodeRegistry&& registry,
-                                       const std::filesystem::path& graph_json_path)
-    : BehaviorFlowEngine(std::move(registry), std::move(jsonFileToNodeGraph(graph_json_path))) {}
+BehaviorFlowExecutor::BehaviorFlowExecutor(NodeRegistry&& registry,
+                                           const std::filesystem::path& graph_json_path)
+    : BehaviorFlowExecutor(std::move(registry), std::move(jsonFileToNodeGraph(graph_json_path))) {}
 
-BehaviorFlowResult BehaviorFlowEngine::execute(std::chrono::milliseconds tick_rate) {
+BehaviorFlowResult BehaviorFlowExecutor::execute(std::chrono::milliseconds tick_rate) {
   while (true) {
     std::chrono::steady_clock::time_point tick_start_time = std::chrono::steady_clock::now();
     const BehaviorFlowResult tick_result = tick();
@@ -38,7 +38,7 @@ BehaviorFlowResult BehaviorFlowEngine::execute(std::chrono::milliseconds tick_ra
   }
 }
 
-BehaviorFlowResult BehaviorFlowEngine::tick() {
+BehaviorFlowResult BehaviorFlowExecutor::tick() {
   if (isTerminalNodeType(current_node_)) {
     if (current_node_.node_type == SuccessNodeTypeId) {
       return BehaviorFlowResult::Success;
@@ -56,17 +56,17 @@ BehaviorFlowResult BehaviorFlowEngine::tick() {
   return BehaviorFlowResult::Running;
 }
 
-void BehaviorFlowEngine::reset() {
+void BehaviorFlowExecutor::reset() {
   current_node_ = graph_.getStartNode();
   node_instance_provider_.clear();
 }
 
-bool BehaviorFlowEngine::isTerminalNodeType(
+bool BehaviorFlowExecutor::isTerminalNodeType(
     const NodeGraph::NodeDescription& node_description) const {
   return node_description.transitions.empty();
 }
 
-void BehaviorFlowEngine::instantiateGraphNodes() {
+void BehaviorFlowExecutor::instantiateGraphNodes() {
   // Instantiate all of the nodes up front to catch any issues before execution begins
   // Todo: We could provide a configuration option to lazy load
   try {
@@ -80,7 +80,7 @@ void BehaviorFlowEngine::instantiateGraphNodes() {
   }
 }
 
-void BehaviorFlowEngine::validateThatGraphMatchesRegisteredNodeTypes() const {
+void BehaviorFlowExecutor::validateThatGraphMatchesRegisteredNodeTypes() const {
   for (const auto& [node_type_id, node_type_description] : graph_.getAllNodeTypes()) {
     std::optional<NodeTypeMetadata> registered_node_type_metadata =
         node_instance_provider_.getNodeTypeMetadata(node_type_id);

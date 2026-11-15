@@ -4,7 +4,7 @@ set(TEST_SOURCES
     test_node_instance_provider.cpp
     test_node_factory.cpp
     test_json_graph_parser.cpp
-    test_behavior_flow_engine.cpp
+    test_behavior_flow_executor.cpp
     test_testing_utils.cpp
     # test_behavior_flow_node.cpp
     test_behavior_flow_utils.cpp

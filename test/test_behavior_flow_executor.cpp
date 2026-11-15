@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "behavior_flow_engine.h"
+#include "behavior_flow_executor.h"
 #include "node_graph.h"
 #include "node_registry.h"
 #include "standard_node_library.h"
@@ -13,7 +13,7 @@ using namespace bflow;
 using namespace bflow::test;
 using namespace std::chrono_literals;
 
-class BehaviorFlowEngineTest : public ::testing::Test {
+class BehaviorFlowExecutorTest : public ::testing::Test {
  protected:
   const NodeTypeId IncrementCounterNodeTypeId{"Increment Counter"};
   const NodeTypeId ToggleFlagNodeTypeId{"Toggle Flag"};
@@ -34,7 +34,7 @@ class BehaviorFlowEngineTest : public ::testing::Test {
       {FailureNodeTypeId, {}}};
 };
 
-TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
+TEST_F(BehaviorFlowExecutorTest, ExecuteSimpleGraph) {
   NodeGraph graph = NodeGraph(
       node_type_descriptions_,
       {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node2")}}},
@@ -42,14 +42,14 @@ TEST_F(BehaviorFlowEngineTest, ExecuteSimpleGraph) {
        {NodeId("node3"), ToggleFlagNodeTypeId, {{SimpleNodeResultId, NodeId("end_success")}}},
        {NodeId("end_success"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
-  BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
-  BehaviorFlowResult result = bf_engine.execute(0ms);
+  BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
+  BehaviorFlowResult result = bf_executor.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Success);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
 }
 
-TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
+TEST_F(BehaviorFlowExecutorTest, TickSimpleGraph) {
   NodeGraph graph = NodeGraph(
       node_type_descriptions_,
       {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("node2")}}},
@@ -57,24 +57,24 @@ TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
        {NodeId("node3"), ToggleFlagNodeTypeId, {{SimpleNodeResultId, NodeId("end_success")}}},
        {NodeId("end_success"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
-  BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
+  BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
 
-  BehaviorFlowResult result = bf_engine.tick();
+  BehaviorFlowResult result = bf_executor.tick();
   EXPECT_EQ(result, BehaviorFlowResult::Running);
   EXPECT_EQ(counter_, 1);
   EXPECT_FALSE(flag_);
 
-  result = bf_engine.tick();
+  result = bf_executor.tick();
   EXPECT_EQ(result, BehaviorFlowResult::Running);
   EXPECT_EQ(counter_, 2);
   EXPECT_FALSE(flag_);
 
-  result = bf_engine.tick();
+  result = bf_executor.tick();
   EXPECT_EQ(result, BehaviorFlowResult::Running);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
 
-  result = bf_engine.tick();
+  result = bf_executor.tick();
   EXPECT_EQ(result, BehaviorFlowResult::Success);
   EXPECT_EQ(counter_, 2);
   EXPECT_TRUE(flag_);
@@ -82,19 +82,19 @@ TEST_F(BehaviorFlowEngineTest, TickSimpleGraph) {
 
 // Todo: Tick graph with multi-cycle node
 
-TEST_F(BehaviorFlowEngineTest, ExecuteGraphWithFailure) {
+TEST_F(BehaviorFlowExecutorTest, ExecuteGraphWithFailure) {
   NodeGraph graph = NodeGraph(
       node_type_descriptions_,
       {{NodeId("node1"), IncrementCounterNodeTypeId, {{SimpleNodeResultId, NodeId("failure_node")}}},
        {NodeId("failure_node"), FailureNodeTypeId, {}}},
       NodeId("node1"));
-  BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), std::move(graph));
-  BehaviorFlowResult result = bf_engine.execute(0ms);
+  BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), std::move(graph));
+  BehaviorFlowResult result = bf_executor.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Failure);
   EXPECT_EQ(counter_, 1);
 }
 
-TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
+TEST_F(BehaviorFlowExecutorTest, UnregisteredNodeTypeThrows) {
   NodeGraph graph = NodeGraph(
       {{NodeTypeId("UnregisteredNodeType"), {SimpleNodeResultId}}, {SuccessNodeTypeId, {}}},
       {{NodeId("node1"),
@@ -102,10 +102,10 @@ TEST_F(BehaviorFlowEngineTest, UnregisteredNodeTypeThrows) {
         {{SimpleNodeResultId, NodeId("end_success")}}},
        {NodeId("end_success"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
-  EXPECT_ANY_THROW(BehaviorFlowEngine(std::move(registry), std::move(graph)));
+  EXPECT_ANY_THROW(BehaviorFlowExecutor(std::move(registry), std::move(graph)));
 }
 
-TEST_F(BehaviorFlowEngineTest, ResultIdMismatchBetweenGraphAndRegisteredThrows) {
+TEST_F(BehaviorFlowExecutorTest, ResultIdMismatchBetweenGraphAndRegisteredThrows) {
   NodeGraph graph = NodeGraph(
       {{IncrementCounterNodeTypeId, {ResultId("InvalidResult")}}, {SuccessNodeTypeId, {}}},
       {{NodeId("node1"),
@@ -113,10 +113,10 @@ TEST_F(BehaviorFlowEngineTest, ResultIdMismatchBetweenGraphAndRegisteredThrows) 
         {{ResultId("InvalidResult"), NodeId("success_node")}}},
        {NodeId("success_node"), SuccessNodeTypeId, {}}},
       NodeId("node1"));
-  EXPECT_ANY_THROW(BehaviorFlowEngine(std::move(registry), std::move(graph)));
+  EXPECT_ANY_THROW(BehaviorFlowExecutor(std::move(registry), std::move(graph)));
 }
 
-TEST_F(BehaviorFlowEngineTest, ExecuteGraphFromFile) {
+TEST_F(BehaviorFlowExecutorTest, ExecuteGraphFromFile) {
   std::string graph_json = R"json(
 {
   "node_types": [
@@ -157,8 +157,8 @@ TEST_F(BehaviorFlowEngineTest, ExecuteGraphFromFile) {
   "start_node_id": "node1"
 })json";
   ScopedTempFile temp_file(graph_json, ".json");
-  BehaviorFlowEngine bf_engine = BehaviorFlowEngine(std::move(registry), temp_file.path());
-  BehaviorFlowResult result = bf_engine.execute(0ms);
+  BehaviorFlowExecutor bf_executor = BehaviorFlowExecutor(std::move(registry), temp_file.path());
+  BehaviorFlowResult result = bf_executor.execute(0ms);
   EXPECT_EQ(result, BehaviorFlowResult::Success);
   EXPECT_EQ(counter_, 1);
   EXPECT_TRUE(flag_);
